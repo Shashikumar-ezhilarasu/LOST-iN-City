@@ -1,15 +1,15 @@
 'use client';
 
-import { Home, Scroll, Package, Trophy } from "lucide-react";
+import { Home, MapPin, Search, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/", icon: Home, label: "Home" },
-  { href: "/quests", icon: Scroll, label: "Quests" },
-  { href: "/inventory", icon: Package, label: "Inventory" },
-  { href: "/leaderboard", icon: Trophy, label: "Leaderboard" },
+  { href: "/quests", icon: Home, label: "Home" },
+  { href: "/browse-lost", icon: Search, label: "Lost" },
+  { href: "/browse-found", icon: MapPin, label: "Found" },
+  { href: "/profile", icon: User, label: "Profile" },
 ];
 
 export default function BottomNav() {

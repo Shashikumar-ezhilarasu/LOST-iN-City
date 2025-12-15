@@ -2,17 +2,35 @@
 
 A gamified Lost & Found web application with a medieval RPG fantasy theme built with Next.js, Tailwind CSS, and Shadcn UI.
 
+## � Application Concept
+
+Lost & Found Quest is a humanitarian platform that gamifies the process of reuniting people with their lost belongings:
+
+1. **Lost Item Owner** reports a lost item with photo/description and sets a reward
+2. **Finder** discovers an item and posts it on the platform
+3. **Matching** system connects lost items with found items
+4. **Verification** process ensures rightful ownership
+5. **Reward Transfer** happens after successful handover (via Stripe)
+6. **Gamification** encourages participation through badges, levels, and leaderboard
+
 ## 🎮 Features
 
 - **Medieval RPG Fantasy Theme**: Rich brown and gold color palette with damask-inspired patterns
-- **Gamification**: Earn coins, level up, complete daily quests, and climb the leaderboard
+- **Gamification System**:
+  - Earn coins and XP for finding and returning items
+  - Level up based on experience points
+  - Unlock badges and achievements
+  - Compete on the leaderboard
+  - Daily quests for extra rewards
+- **Humanitarian Impact**: Track how many people you've helped
+- **Social Profile**: Showcase your achievements and statistics
 - **Responsive Design**: Optimized for both mobile and desktop experiences
-- **Persistent Layout**: Fixed header with player stats and bottom navigation bar
-- **Multiple Pages**:
-  - Landing Page with hero banner and "How It Works" section
-  - Home Dashboard with daily quests and leaderboard preview
-  - Inventory page with grid of items
-  - Full leaderboard with ranking system
+- **Complete User Flow**:
+  - Report lost items with rewards
+  - Browse and search found items
+  - Claim items and verify ownership
+  - Real-time chat for coordination
+  - Secure payment processing
 
 ## 🚀 Getting Started
 
@@ -68,8 +86,61 @@ npm run dev
 ### 1. Landing Page (`/`)
 
 - Hero banner with call-to-action
-- "How It Works" section with 3 steps
+- "How It Works" section with 3 steps (Post & Reward, Find & Connect, Handover & Claim)
 - Engaging introduction to the platform
+
+### 2. Home Dashboard (`/quests`)
+
+- Welcome banner with daily reward
+- Quick action buttons (Report Lost Item, Browse Found Items)
+- Daily quests with progress tracking
+- Leaderboard preview with top 5 players
+
+### 3. Report Lost Item (`/report-lost`)
+
+- Comprehensive form with medieval styling
+- Fields: item name, description, location, date, reward amount, images
+- Category selection and contact information
+- Quest summary showing posting fee and total cost
+
+### 4. Browse Found Items (`/browse-found`)
+
+- Search bar with advanced filters
+- Grid of found items with reward badges
+- Sorting options (newest, highest reward, most responses)
+- Quick category filters
+
+### 5. Item Detail Page (`/item/[id]`)
+
+- Large item image gallery
+- Complete description and distinguishing features
+- Location and time details
+- Finder profile with stats and rating
+- Claim item button with reward display
+- Verification requirements notice
+
+### 6. Inventory Page (`/inventory`)
+
+- Grid layout of user's lost/found items
+- Item cards with images, details, and status badges
+- Track items through the entire process
+- Interactive hover effects
+
+### 7. Profile Page (`/profile`)
+
+- User avatar and level display with XP progress bar
+- Comprehensive statistics (items found/returned, rewards earned, success rate)
+- Badges and achievements showcase with rarity tiers
+- Recent activity feed
+- Detailed heroic statistics (helpfulness score, response rate)
+- Humanity impact section showing people helped
+
+### 8. Leaderboard (`/leaderboard`)
+
+- Top 3 podium display with crowns and medals
+- Full ranking list with player stats
+- Current user position highlighted
+- Stats include: level, items found, coins earned
 
 ### 2. Home Dashboard (`/quests`)
 
@@ -136,14 +207,26 @@ lostCity/
 - `.nav-item-active` - Active navigation item styling
 - `.nav-item` - Inactive navigation item styling
 
-## 🔄 Future Enhancements
+## 🔄 Upcoming Integrations
 
-- User authentication
-- Real-time chat system
+### Backend Stack
+
+- **Spring Boot** - Java backend API
+- **MongoDB** - NoSQL database for flexible data storage
+- **Clerk** - User authentication and management
+- **Stripe** - Secure payment processing for rewards
+
+### Features to be Implemented
+
+- Real-time chat system (WebSocket)
+- Email/SMS notifications
 - Map integration for item locations
-- Notification system
-- Achievement badges
-- Social sharing features
+- Image upload to cloud storage (AWS S3/Cloudinary)
+- Machine learning for item matching suggestions
+- Admin dashboard for platform management
+- Mobile app (React Native)
+
+See [BACKEND_REQUIREMENTS.md](./BACKEND_REQUIREMENTS.md) for complete backend specifications.
 
 ## 📝 License
 

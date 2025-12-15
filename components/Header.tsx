@@ -2,6 +2,7 @@
 
 import { Coins, Home, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import Link from "next/link";
 
 export default function Header() {
   return (
@@ -11,7 +12,7 @@ export default function Header() {
         <div className="flex items-center space-x-3">
           <Home className="w-8 h-8 text-medieval-gold" />
           <h1 className="fantasy-title text-xl md:text-2xl">
-            LOST & FOUND QUEST
+            Lost-City
           </h1>
         </div>
 
@@ -31,12 +32,14 @@ export default function Header() {
           </div>
 
           {/* User Avatar */}
-          <Avatar className="w-10 h-10">
-            <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Player" />
-            <AvatarFallback className="bg-medieval-gold text-medieval-brown">
-              <User className="w-5 h-5" />
-            </AvatarFallback>
-          </Avatar>
+          <Link href="/profile">
+            <Avatar className="w-10 h-10 cursor-pointer hover:border-medieval-gold transition-all">
+              <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Player" />
+              <AvatarFallback className="bg-medieval-gold text-medieval-brown">
+                <User className="w-5 h-5" />
+              </AvatarFallback>
+            </Avatar>
+          </Link>
         </div>
       </div>
     </header>
