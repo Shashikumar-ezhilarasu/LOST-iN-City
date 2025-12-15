@@ -1,0 +1,88 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=MedievalSharp&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 30 45% 9%;
+    --foreground: 30 35% 88%;
+    --card: 30 40% 15%;
+    --card-foreground: 30 35% 88%;
+    --popover: 30 40% 15%;
+    --popover-foreground: 30 35% 88%;
+    --primary: 45 95% 57%;
+    --primary-foreground: 30 45% 9%;
+    --secondary: 30 40% 20%;
+    --secondary-foreground: 30 35% 88%;
+    --muted: 30 35% 25%;
+    --muted-foreground: 30 25% 65%;
+    --accent: 45 85% 62%;
+    --accent-foreground: 30 45% 9%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 30 35% 88%;
+    --border: 45 65% 45%;
+    --input: 45 65% 45%;
+    --ring: 45 85% 62%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-medieval-brown text-medieval-beige font-sans;
+    font-family: 'Cinzel', serif;
+    background-image: 
+      repeating-linear-gradient(
+        0deg,
+        rgba(74, 46, 27, 0.1) 0px,
+        transparent 1px,
+        transparent 40px,
+        rgba(74, 46, 27, 0.1) 41px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        rgba(74, 46, 27, 0.1) 0px,
+        transparent 1px,
+        transparent 40px,
+        rgba(74, 46, 27, 0.1) 41px
+      ),
+      radial-gradient(circle at 20% 20%, rgba(244, 196, 48, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(199, 155, 0, 0.05) 0%, transparent 50%);
+    background-color: #2e1a0f;
+  }
+}
+
+@layer components {
+  .fantasy-title {
+    font-family: 'MedievalSharp', cursive;
+    @apply text-medieval-gold font-bold tracking-wider;
+  }
+  
+  .gold-border {
+    @apply border-4 border-medieval-gold rounded-lg;
+  }
+  
+  .fantasy-card {
+    @apply bg-medieval-brown-light gold-border shadow-xl;
+  }
+  
+  .fantasy-button {
+    @apply bg-gradient-to-b from-medieval-gold to-medieval-gold-dark text-medieval-brown 
+           font-bold py-3 px-6 rounded-lg border-2 border-medieval-gold-dark
+           shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200
+           active:scale-95;
+  }
+  
+  .nav-item-active {
+    @apply text-medieval-gold border-t-4 border-medieval-gold;
+  }
+  
+  .nav-item {
+    @apply text-medieval-beige/70 hover:text-medieval-beige border-t-4 border-transparent;
+  }
+}
