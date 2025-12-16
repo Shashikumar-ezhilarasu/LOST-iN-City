@@ -7,14 +7,14 @@ import lombok.NoArgsConstructor;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.UUID;
+
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class FoundReportResponse {
-    private UUID id;
+    private String id;
     private String title;
     private String description;
     private String category;
@@ -30,7 +30,7 @@ public class FoundReportResponse {
     private UserSummary reportedBy;
     private String foundCondition;
     private String holdingInstructions;
-    private UUID matchedLostItemId;
+    private String matchedLostItemId;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 
@@ -39,7 +39,7 @@ public class FoundReportResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class UserSummary {
-        private UUID id;
+        private String id;
         private String displayName;
         private String avatarUrl;
     }

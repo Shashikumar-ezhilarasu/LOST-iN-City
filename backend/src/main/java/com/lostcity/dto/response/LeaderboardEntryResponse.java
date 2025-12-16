@@ -5,14 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
+
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class LeaderboardEntryResponse {
-    private UUID userId;
+    private String userId;
     private String displayName;
     private String avatarUrl;
     private Integer score;
