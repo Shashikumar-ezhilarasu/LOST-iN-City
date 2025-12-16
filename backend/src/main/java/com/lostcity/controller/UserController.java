@@ -22,6 +22,12 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @GetMapping("/profile")
+    public ResponseEntity<ApiResponse<UserResponse>> getProfile() {
+        UserResponse response = userService.getCurrentUserResponse();
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
     @PatchMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> updateCurrentUser(@RequestBody Map<String, String> updates) {
         UserResponse response = userService.updateCurrentUser(
