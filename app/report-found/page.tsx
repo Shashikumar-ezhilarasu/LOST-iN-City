@@ -1,9 +1,94 @@
+'use client';
+
+import { useState } from "react";
 import { Upload, MapPin, Calendar, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { foundReportsAPI, imageToBase64, FoundReportRequest } from "@/lib/api";
+
+const categories = [
+  "Electronics",
+  "Personal Items",
+  "Documents",
+  "Keys",
+  "Accessories",
+  "Bags",
+  "Others",
+];
 
 export default function ReportFoundPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [images, setImages] = useState<File[]>([]);
+  
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    category: categories[0],
+    locationName: '',
+    foundDate: '',
+    foundTime: '12:00',
+    latitude: 0,
+    longitude: 0,
+    color: '',
+    brand: '',
+    foundCondition: '',
+    holdingInstructions: '',
+  });
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setImages(prev => [...prev, ...newFiles].slice(0, 5));
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const imageBase64 = await Promise.all(
+        images.map(img => imageToBase64(img))
+      );
+
+      const { title, description, category, locationName, foundDate, foundTime, latitude, longitude, color, brand, foundCondition, holdingInstructions } = formData;
+      const foundAt = `${foundDate}T${foundTime}:00+05:30`;
+
+      const reportData: FoundReportRequest = {
+        title,
+        description,
+        category,
+        foundAt,
+        locationName: locationName || undefined,
+        latitude: latitude || 12.9716,
+        longitude: longitude || 77.5946,
+        images: imageBase64.length > 0 ? imageBase64 : undefined,
+        color: color || undefined,
+        brand: brand || undefined,
+        foundCondition: foundCondition || undefined,
+        holdingInstructions: holdingInstructions || undefined,
+      };
+
+      const response = await foundReportsAPI.create(reportData);
+      alert('Found item report created successfully!');
+      router.push('/browse-found');
+    } catch (err: any) {
+      setError(err.message || 'Failed to create report.');
+      console.error('Error creating found report:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6 py-6">
       {/* Header */}
@@ -23,8 +108,16 @@ export default function ReportFoundPage() {
         </div>
       </div>
 
+      {/* Error Message */}
+      {error && (
+        <div className="fantasy-card p-4 bg-red-900/20 border-2 border-red-600">
+          <p className="text-red-400">{error}</p>
+        </div>
+      )}
+
       {/* Form */}
-      <Card className="fantasy-card">
+      <form onSubmit={handleSubmit}>
+        <Card className="fantasy-card">
         <CardHeader>
           <CardTitle className="fantasy-title text-xl">
             FOUND ITEM DETAILS
@@ -39,6 +132,9 @@ export default function ReportFoundPage() {
             </label>
             <input
               type="text"
+              required
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="E.g., Leather Wallet, Gold Ring, Blue Backpack"
               className="w-full bg-medieval-brown border-2 border-medieval-gold/50 rounded-lg px-4 py-3 text-medieval-beige placeholder-medieval-beige/40 focus:border-medieval-gold focus:outline-none focus:ring-2 focus:ring-medieval-gold/50"
             />
@@ -51,9 +147,12 @@ export default function ReportFoundPage() {
               <span className="text-red-500">*</span>
             </label>
             <textarea
+              required
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={4}
               placeholder="Describe the found item in detail (color, brand, condition, contents if visible)..."
-              className="w-full bg-medieval-brown border-2 border-medieval-gold/50 rounded-lg px-4 py-3 text-medieval-beige placeholder-medieval-beige/40 focus:border-medieval-gold focus:outline-none focus:ring-2 focus:ring-medieval-gold/50"
+              className="w-full bg-medieval-brown border-2 border-medieval-gold/50 rounded-lg px-4 py-3 text-medieval-beige placeholder-medieval-beige/40 focus:border-medieval-gold focus:outline-none focus:ring-2 focus:ring-medieval-gold/50 resize-none"
             />
           </div>
 
@@ -66,6 +165,9 @@ export default function ReportFoundPage() {
             </label>
             <input
               type="text"
+              required
+              value={formData.locationName}
+              onChange={(e) => setFormData({ ...formData, locationName: e.target.value })}
               placeholder="E.g., Central Park near fountain, Metro Station exit 3"
               className="w-full bg-medieval-brown border-2 border-medieval-gold/50 rounded-lg px-4 py-3 text-medieval-beige placeholder-medieval-beige/40 focus:border-medieval-gold focus:outline-none focus:ring-2 focus:ring-medieval-gold/50"
             />
@@ -81,6 +183,10 @@ export default function ReportFoundPage() {
               </label>
               <input
                 type="date"
+                required
+                value={formData.foundDate}
+                onChange={(e) => setFormData({ ...formData, foundDate: e.target.value })}
+                max={new Date().toISOString().split('T')[0]}
                 className="w-full bg-medieval-brown border-2 border-medieval-gold/50 rounded-lg px-4 py-3 text-medieval-beige focus:border-medieval-gold focus:outline-none focus:ring-2 focus:ring-medieval-gold/50"
               />
             </div>
@@ -91,18 +197,22 @@ export default function ReportFoundPage() {
               </label>
               <input
                 type="time"
+                value={formData.foundTime}
+                onChange={(e) => setFormData({ ...formData, foundTime: e.target.value })}
                 className="w-full bg-medieval-brown border-2 border-medieval-gold/50 rounded-lg px-4 py-3 text-medieval-beige focus:border-medieval-gold focus:outline-none focus:ring-2 focus:ring-medieval-gold/50"
               />
             </div>
           </div>
 
-          {/* Distinguishing Features */}
+          {/* Distinguishing Features / Found Condition */}
           <div className="space-y-2">
             <label className="text-medieval-gold font-semibold">
-              Distinguishing Features
+              Condition & Features (Optional)
             </label>
             <textarea
               rows={3}
+              value={formData.foundCondition}
+              onChange={(e) => setFormData({ ...formData, foundCondition: e.target.value })}
               placeholder="Any unique marks, scratches, custom features, or identifying characteristics..."
               className="w-full bg-medieval-brown border-2 border-medieval-gold/50 rounded-lg px-4 py-3 text-medieval-beige placeholder-medieval-beige/40 focus:border-medieval-gold focus:outline-none focus:ring-2 focus:ring-medieval-gold/50"
             />
@@ -112,18 +222,99 @@ export default function ReportFoundPage() {
           <div className="space-y-2">
             <label className="text-medieval-gold font-semibold flex items-center space-x-2">
               <Upload className="w-4 h-4" />
-              <span>Upload Images</span>
-              <span className="text-red-500">*</span>
+              <span>Upload Images (Optional, max 5)</span>
             </label>
-            <div className="border-2 border-dashed border-medieval-gold/50 rounded-lg p-8 text-center hover:border-medieval-gold transition-colors cursor-pointer">
-              <Upload className="w-12 h-12 text-medieval-gold/50 mx-auto mb-3" />
-              <p className="text-medieval-beige mb-1">
-                Click to upload or drag and drop
-              </p>
-              <p className="text-xs text-medieval-beige/60">
-                PNG, JPG, WEBP up to 10MB (Multiple images recommended)
-              </p>
+            <div className="space-y-3">
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleImageUpload}
+                className="hidden"
+                id="image-upload"
+                disabled={images.length >= 5}
+              />
+              <label
+                htmlFor="image-upload"
+                className={`block w-full bg-medieval-brown border-2 border-dashed border-medieval-gold/50 rounded-lg px-4 py-8 text-center cursor-pointer hover:border-medieval-gold transition-colors ${
+                  images.length >= 5 ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                <Upload className="w-8 h-8 text-medieval-gold/50 mx-auto mb-2" />
+                <p className="text-medieval-beige/60">
+                  {images.length >= 5
+                    ? 'Maximum 5 images reached'
+                    : 'Click to upload images'}
+                </p>
+              </label>
+
+              {/* Image Previews */}
+              {images.length > 0 && (
+                <div className="grid grid-cols-3 gap-3">
+                  {images.map((file, index) => (
+                    <div
+                      key={index}
+                      className="relative aspect-square rounded-lg overflow-hidden border-2 border-medieval-gold/30"
+                    >
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-1 right-1 bg-red-600 rounded-full p-1 hover:bg-red-700 transition-colors"
+                      >
+                        <X className="w-4 h-4 text-white" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+          </div>
+
+          {/* Optional Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-medieval-gold font-semibold">
+                Color (Optional)
+              </label>
+              <input
+                type="text"
+                value={formData.color}
+                onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                placeholder="E.g., Blue, Black, Red"
+                className="w-full bg-medieval-brown border-2 border-medieval-gold/50 rounded-lg px-4 py-3 text-medieval-beige placeholder-medieval-beige/40 focus:border-medieval-gold focus:outline-none focus:ring-2 focus:ring-medieval-gold/50"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-medieval-gold font-semibold">
+                Brand (Optional)
+              </label>
+              <input
+                type="text"
+                value={formData.brand}
+                onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                placeholder="E.g., Nike, Apple, Samsung"
+                className="w-full bg-medieval-brown border-2 border-medieval-gold/50 rounded-lg px-4 py-3 text-medieval-beige placeholder-medieval-beige/40 focus:border-medieval-gold focus:outline-none focus:ring-2 focus:ring-medieval-gold/50"
+              />
+            </div>
+          </div>
+
+          {/* Holding Instructions */}
+          <div className="space-y-2">
+            <label className="text-medieval-gold font-semibold">
+              Holding Instructions (Optional)
+            </label>
+            <textarea
+              rows={2}
+              value={formData.holdingInstructions}
+              onChange={(e) => setFormData({ ...formData, holdingInstructions: e.target.value })}
+              placeholder="Where are you keeping the item? How can the owner contact you?"
+              className="w-full bg-medieval-brown border-2 border-medieval-gold/50 rounded-lg px-4 py-3 text-medieval-beige placeholder-medieval-beige/40 focus:border-medieval-gold focus:outline-none focus:ring-2 focus:ring-medieval-gold/50 resize-none"
+            />
           </div>
 
           {/* Category */}
@@ -131,31 +322,41 @@ export default function ReportFoundPage() {
             <label className="text-medieval-gold font-semibold">
               Category
             </label>
-            <select className="w-full bg-medieval-brown border-2 border-medieval-gold/50 rounded-lg px-4 py-3 text-medieval-beige focus:border-medieval-gold focus:outline-none focus:ring-2 focus:ring-medieval-gold/50">
-              <option>Electronics</option>
-              <option>Accessories</option>
-              <option>Jewelry</option>
-              <option>Documents</option>
-              <option>Keys</option>
-              <option>Bags & Luggage</option>
-              <option>Clothing</option>
-              <option>Other</option>
+            <select
+              required
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              className="w-full bg-medieval-brown border-2 border-medieval-gold/50 rounded-lg px-4 py-3 text-medieval-beige focus:border-medieval-gold focus:outline-none focus:ring-2 focus:ring-medieval-gold/50"
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
             </select>
           </div>
-
-          {/* Contact Info */}
-          <div className="space-y-2">
-            <label className="text-medieval-gold font-semibold">
-              Your Contact Information
-            </label>
-            <input
-              type="email"
-              placeholder="your.email@example.com"
-              className="w-full bg-medieval-brown border-2 border-medieval-gold/50 rounded-lg px-4 py-3 text-medieval-beige placeholder-medieval-beige/40 focus:border-medieval-gold focus:outline-none focus:ring-2 focus:ring-medieval-gold/50"
-            />
+          {/* Action Buttons */}
+          <div className="flex space-x-4 pt-4">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="flex-1 bg-medieval-gold hover:bg-medieval-gold/90 text-medieval-brown font-bold py-6 text-lg"
+            >
+              {loading ? 'Posting...' : 'POST FOUND ITEM'}
+            </Button>
+            <Link href="/" className="flex-1">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full border-2 border-medieval-gold/50 bg-transparent hover:bg-medieval-gold/10 text-medieval-gold py-6 text-lg"
+              >
+                CANCEL
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>
+      </form>
 
       {/* Info Card */}
       <Card className="fantasy-card bg-medieval-gold/10">
@@ -181,23 +382,6 @@ export default function ReportFoundPage() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Action Buttons */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <Link href="/browse-found" className="flex-1">
-          <Button className="w-full bg-medieval-brown-light text-medieval-beige border-2 border-medieval-gold/50 hover:border-medieval-gold py-6 rounded-lg font-bold">
-            <X className="w-5 h-5 mr-2" />
-            CANCEL
-          </Button>
-        </Link>
-        
-        <Link href="/profile" className="flex-1">
-          <Button className="fantasy-button w-full py-6 text-lg">
-            <Plus className="w-5 h-5 mr-2" />
-            POST FOUND ITEM
-          </Button>
-        </Link>
-      </div>
 
       {/* Info Box */}
       <div className="fantasy-card p-4 bg-medieval-gold/5">
