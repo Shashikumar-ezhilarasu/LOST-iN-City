@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/leaderboard")
+@RequestMapping("/api/leaderboard")
 @RequiredArgsConstructor
 public class LeaderboardController {
 

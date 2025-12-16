@@ -9,10 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
-@RequestMapping("/quests")
+@RequestMapping("/api/quests")
 @RequiredArgsConstructor
 public class QuestController {
 
@@ -35,13 +34,13 @@ public class QuestController {
     }
 
     @PostMapping("/{id}/start")
-    public ResponseEntity<ApiResponse<QuestResponse>> startQuest(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<QuestResponse>> startQuest(@PathVariable String id) {
         QuestResponse response = questService.startQuest(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @PostMapping("/{id}/complete")
-    public ResponseEntity<ApiResponse<QuestResponse>> completeQuest(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<QuestResponse>> completeQuest(@PathVariable String id) {
         QuestResponse response = questService.completeQuest(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }

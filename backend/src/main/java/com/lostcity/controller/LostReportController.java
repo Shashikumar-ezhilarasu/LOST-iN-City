@@ -15,10 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
-@RequestMapping("/items/lost")
+@RequestMapping("/api/lost-reports")
 @RequiredArgsConstructor
 public class LostReportController {
 
@@ -33,7 +32,7 @@ public class LostReportController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<LostReportResponse>> getLostReport(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<LostReportResponse>> getLostReport(@PathVariable String id) {
         LostReportResponse response = lostReportService.getLostReportById(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -60,14 +59,14 @@ public class LostReportController {
 
     @PostMapping("/{id}/comments")
     public ResponseEntity<ApiResponse<CommentResponse>> createComment(
-            @PathVariable UUID id,
+            @PathVariable String id,
             @Valid @RequestBody CreateCommentRequest request) {
         CommentResponse response = commentService.createComment(Comment.ItemType.LOST, id, request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @GetMapping("/{id}/comments")
-    public ResponseEntity<ApiResponse<List<CommentResponse>>> getComments(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<List<CommentResponse>>> getComments(@PathVariable String id) {
         List<CommentResponse> comments = commentService.getCommentsByItem(Comment.ItemType.LOST, id);
         return ResponseEntity.ok(ApiResponse.success(comments));
     }

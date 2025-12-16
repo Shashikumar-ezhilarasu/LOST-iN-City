@@ -15,10 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
-@RequestMapping("/items/found")
+@RequestMapping("/api/found-reports")
 @RequiredArgsConstructor
 public class FoundReportController {
 
@@ -33,7 +32,7 @@ public class FoundReportController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<FoundReportResponse>> getFoundReport(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<FoundReportResponse>> getFoundReport(@PathVariable String id) {
         FoundReportResponse response = foundReportService.getFoundReportById(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
@@ -60,14 +59,14 @@ public class FoundReportController {
 
     @PostMapping("/{id}/comments")
     public ResponseEntity<ApiResponse<CommentResponse>> createComment(
-            @PathVariable UUID id,
+            @PathVariable String id,
             @Valid @RequestBody CreateCommentRequest request) {
         CommentResponse response = commentService.createComment(Comment.ItemType.FOUND, id, request);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @GetMapping("/{id}/comments")
-    public ResponseEntity<ApiResponse<List<CommentResponse>>> getComments(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<List<CommentResponse>>> getComments(@PathVariable String id) {
         List<CommentResponse> comments = commentService.getCommentsByItem(Comment.ItemType.FOUND, id);
         return ResponseEntity.ok(ApiResponse.success(comments));
     }

@@ -8,10 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import java.util.UUID;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -34,7 +33,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable String id) {
         UserResponse response = userService.getUserById(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }

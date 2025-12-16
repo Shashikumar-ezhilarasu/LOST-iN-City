@@ -1,0 +1,45 @@
+package com.lostcity.controller;
+
+import com.lostcity.dto.request.CreateMatchRequestDto;
+import com.lostcity.dto.response.ApiResponse;
+import com.lostcity.dto.response.MatchRequestResponse;
+import com.lostcity.service.MatchRequestService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/matches")
+@RequiredArgsConstructor
+public class MatchRequestController {
+
+    private final MatchRequestService matchRequestService;
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<MatchRequestResponse>> createMatchRequest(
+            @Valid @RequestBody CreateMatchRequestDto request) {
+        MatchRequestResponse response = matchRequestService.createMatchRequest(request);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping("/user")
+    public ResponseEntity<ApiResponse<List<MatchRequestResponse>>> getUserMatches() {
+        List<MatchRequestResponse> matches = matchRequestService.getUserMatches();
+        return ResponseEntity.ok(ApiResponse.success(matches));
+    }
+
+    @PatchMapping("/{id}/accept")
+    public ResponseEntity<ApiResponse<MatchRequestResponse>> acceptMatch(@PathVariable String id) {
+        MatchRequestResponse response = matchRequestService.acceptMatch(id);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @PatchMapping("/{id}/reject")
+    public ResponseEntity<ApiResponse<MatchRequestResponse>> rejectMatch(@PathVariable String id) {
+        MatchRequestResponse response = matchRequestService.rejectMatch(id);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+}
