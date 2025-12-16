@@ -45,11 +45,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/lost-reports/**", "/api/found-reports/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/lost-reports", "/api/found-reports").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/leaderboard", "/api/leaderboard/**").permitAll()
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/items/lost/**", "/items/found/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/leaderboard", "/leaderboard/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/categories", "/tags/suggest").permitAll()
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
