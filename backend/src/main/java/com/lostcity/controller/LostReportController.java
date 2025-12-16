@@ -57,6 +57,12 @@ public class LostReportController {
         return ResponseEntity.ok(ApiResponse.success(responsePage.getContent(), meta));
     }
 
+    @GetMapping("/my-reports")
+    public ResponseEntity<ApiResponse<List<LostReportResponse>>> getMyLostReports() {
+        List<LostReportResponse> reports = lostReportService.getMyLostReports();
+        return ResponseEntity.ok(ApiResponse.success(reports));
+    }
+
     @PostMapping("/{id}/comments")
     public ResponseEntity<ApiResponse<CommentResponse>> createComment(
             @PathVariable String id,
