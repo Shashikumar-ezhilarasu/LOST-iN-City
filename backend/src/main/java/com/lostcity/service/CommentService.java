@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,7 +20,7 @@ public class CommentService {
     private final UserService userService;
 
     @Transactional
-    public CommentResponse createComment(Comment.ItemType itemType, UUID itemId, CreateCommentRequest request) {
+    public CommentResponse createComment(Comment.ItemType itemType, String itemId, CreateCommentRequest request) {
         User currentUser = userService.getCurrentUser();
 
         Comment comment = Comment.builder()
@@ -36,7 +35,7 @@ public class CommentService {
     }
 
     @Transactional(readOnly = true)
-    public List<CommentResponse> getCommentsByItem(Comment.ItemType itemType, UUID itemId) {
+    public List<CommentResponse> getCommentsByItem(Comment.ItemType itemType, String itemId) {
         return commentRepository.findByItemTypeAndItemIdOrderByCreatedAtAsc(itemType, itemId)
                 .stream()
                 .map(this::mapToResponse)

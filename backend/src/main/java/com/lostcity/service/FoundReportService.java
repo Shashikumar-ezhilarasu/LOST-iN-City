@@ -6,15 +6,15 @@ import com.lostcity.model.FoundReport;
 import com.lostcity.model.User;
 import com.lostcity.repository.FoundReportRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.*;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +22,7 @@ public class FoundReportService {
 
     private final FoundReportRepository foundReportRepository;
     private final UserService userService;
+    private final MongoTemplate mongoTemplate;
 
     @Transactional
     public FoundReportResponse createFoundReport(CreateFoundReportRequest request) {
@@ -53,7 +54,7 @@ public class FoundReportService {
     }
 
     @Transactional(readOnly = true)
-    public FoundReportResponse getFoundReportById(UUID id) {
+    public FoundReportResponse getFoundReportById(String id) {
         FoundReport report = foundReportRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Found report not found"));
         return mapToResponse(report);
@@ -61,20 +62,34 @@ public class FoundReportService {
 
     @Transactional(readOnly = true)
     public Page<FoundReportResponse> searchFoundReports(
-            String query,
+            String queryText,
             String category,
             String status,
             int page,
             int pageSize,
             String sort) {
-        Pageable pageable = createPageable(page, pageSize, sort);
-        Specification<FoundReport> spec = createSpecification(query, category, status);
+        Query query = new Query();
+        List<Criteria> criteriaList = new ArrayList<>();
 
-        return foundReportRepository.findAll(spec, pageable)
-                .map(this::mapToSummaryResponse);
-    }
+        if (queryText != null && !queryText.isEmpty()) {
+            criteriaList.add(new Criteria().orOperator(
+                    Criteria.where("title").regex(queryText, "i"),
+                    Criteria.where("description").regex(queryText, "i")));
+        }
 
-    private Pageable createPageable(int page, int pageSize, String sort) {
+        if (category != null && !category.isEmpty()) {
+            criteriaList.add(Criteria.where("category").is(category));
+        }
+
+        if (status != null && !status.isEmpty()) {
+            criteriaList.add(Criteria.where("status").is(status.toUpperCase()));
+        }
+
+        if (!criteriaList.isEmpty()) {
+            query.addCriteria(new Criteria().andOperator(criteriaList.toArray(new Criteria[0])));
+        }
+
+        // Sort
         Sort sortObj = Sort.by(Sort.Direction.DESC, "createdAt");
         if (sort != null && !sort.isEmpty()) {
             String[] parts = sort.split(":");
@@ -82,29 +97,18 @@ public class FoundReportService {
                     : Sort.Direction.DESC;
             sortObj = Sort.by(direction, parts[0]);
         }
-        return PageRequest.of(page - 1, pageSize, sortObj);
-    }
+        query.with(sortObj);
 
-    private Specification<FoundReport> createSpecification(String query, String category, String status) {
-        return (root, criteriaQuery, cb) -> {
-            var predicates = new java.util.ArrayList<jakarta.persistence.criteria.Predicate>();
+        // Pagination
+        long total = mongoTemplate.count(query, FoundReport.class);
+        query.with(PageRequest.of(page - 1, pageSize));
 
-            if (query != null && !query.isEmpty()) {
-                predicates.add(cb.or(
-                        cb.like(cb.lower(root.get("title")), "%" + query.toLowerCase() + "%"),
-                        cb.like(cb.lower(root.get("description")), "%" + query.toLowerCase() + "%")));
-            }
+        List<FoundReport> reports = mongoTemplate.find(query, FoundReport.class);
+        List<FoundReportResponse> responses = reports.stream()
+                .map(this::mapToSummaryResponse)
+                .toList();
 
-            if (category != null && !category.isEmpty()) {
-                predicates.add(cb.equal(root.get("category"), category));
-            }
-
-            if (status != null && !status.isEmpty()) {
-                predicates.add(cb.equal(root.get("status"), FoundReport.ItemStatus.valueOf(status.toUpperCase())));
-            }
-
-            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
-        };
+        return new PageImpl<>(responses, PageRequest.of(page - 1, pageSize, sortObj), total);
     }
 
     private FoundReportResponse mapToResponse(FoundReport report) {
