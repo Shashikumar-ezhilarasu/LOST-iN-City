@@ -1,5 +1,6 @@
 package com.lostcity.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -8,7 +9,6 @@ import lombok.NoArgsConstructor;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-
 @Data
 @Builder
 @NoArgsConstructor
@@ -16,6 +16,13 @@ import java.util.List;
 public class FoundReportResponse {
     private String id;
     private String title;
+
+    // Alias for frontend compatibility
+    @JsonProperty("itemName")
+    public String getItemName() {
+        return title;
+    }
+
     private String description;
     private String category;
     private List<String> images;
@@ -25,6 +32,13 @@ public class FoundReportResponse {
     private Double latitude;
     private Double longitude;
     private String locationName;
+
+    // Alias for frontend compatibility
+    @JsonProperty("foundLocation")
+    public String getFoundLocation() {
+        return locationName;
+    }
+
     private String status;
     private OffsetDateTime foundAt;
     private UserSummary reportedBy;
