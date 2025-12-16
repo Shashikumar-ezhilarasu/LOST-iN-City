@@ -24,7 +24,7 @@ export default function LandingPage() {
           Earn gold, gain experience, and become a legendary hero of humanity!
         </p>
         
-        <Link href="/quests">
+        <Link href="/sign-up">
           <Button className="fantasy-button text-lg md:text-xl mt-6 py-6 px-8 md:px-12">
             START YOUR QUEST (Sign Up)
           </Button>
