@@ -82,15 +82,21 @@ export interface PageResponse<T> {
   number: number;
 }
 
-// Helper to get auth token
-function getAuthToken(): string | null {
+// Helper to get auth token (from Clerk or fallback to legacy)
+async function getAuthToken(): Promise<string | null> {
+  // Try to get Clerk token if available
+  if (typeof window !== 'undefined' && (window as any).__clerk_session_token) {
+    return (window as any).__clerk_session_token;
+  }
+  
+  // Fallback to localStorage for legacy auth
   if (typeof window !== 'undefined') {
     return localStorage.getItem('auth_token');
   }
   return null;
 }
 
-// Helper to set auth token
+// Helper to set auth token (legacy)
 export function setAuthToken(token: string) {
   if (typeof window !== 'undefined') {
     localStorage.setItem('auth_token', token);
@@ -104,16 +110,24 @@ export function clearAuthToken() {
   }
 }
 
+// Set Clerk session token (called from ClerkProvider)
+export function setClerkToken(token: string) {
+  if (typeof window !== 'undefined') {
+    (window as any).__clerk_session_token = token;
+  }
+}
+
 // Generic fetch wrapper
 async function apiFetch<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  customToken?: string | null
 ): Promise<T> {
-  const token = getAuthToken();
+  const token = customToken !== undefined ? customToken : await getAuthToken();
   
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string>),
   };
 
   if (token) {
@@ -126,8 +140,33 @@ async function apiFetch<T>(
   });
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error || `HTTP error! status: ${response.status}`);
+    let errorMessage = `HTTP error! status: ${response.status}`;
+    
+    try {
+      const errorData = await response.json();
+      
+      // Check if this is a "User not found" error
+      if (errorData.errors && errorData.errors.some((err: any) => 
+        err.message && err.message.includes('User not found'))) {
+        // Clear the invalid token and redirect to login
+        clearAuthToken();
+        if (typeof window !== 'undefined') {
+          window.location.href = '/';
+        }
+        errorMessage = 'Session expired. Please login again.';
+      } else if (errorData.errors && errorData.errors.length > 0) {
+        errorMessage = errorData.errors[0].message;
+      }
+    } catch (e) {
+      // If JSON parsing fails, try to get text
+      try {
+        errorMessage = await response.text();
+      } catch (textError) {
+        // Keep the default error message
+      }
+    }
+    
+    throw new Error(errorMessage);
   }
 
   return response.json();
@@ -288,6 +327,53 @@ export const userAPI = {
     apiFetch<User>('/users/profile', {
       method: 'PATCH',
       body: JSON.stringify(data),
+    }),
+};
+
+// Claims API
+export const claimsAPI = {
+  // Create a claim for a lost item
+  create: (lostReportId: string, foundReportId: string | null, message: string) =>
+    apiFetch<any>('/claims', {
+      method: 'POST',
+      body: JSON.stringify({
+        lost_report_id: lostReportId,
+        found_report_id: foundReportId,
+        message,
+      }),
+    }),
+
+  // Get all claims for a specific lost report (owner only)
+  getForLostReport: (lostReportId: string) =>
+    apiFetch<any[]>(`/claims/lost-report/${lostReportId}`),
+
+  // Get user's own claims (as a claimer/finder)
+  getMyClaims: () => apiFetch<any[]>('/claims/my-claims'),
+
+  // Get claims for user's lost items (as owner)
+  getMyLostItemsClaims: () => apiFetch<any[]>('/claims/my-lost-items'),
+
+  // Get a specific claim by ID
+  getById: (claimId: string) => apiFetch<any>(`/claims/${claimId}`),
+
+  // Approve a claim (owner only)
+  approve: (claimId: string, response: string) =>
+    apiFetch<any>(`/claims/${claimId}/approve`, {
+      method: 'POST',
+      body: JSON.stringify({ response }),
+    }),
+
+  // Reject a claim (owner only)
+  reject: (claimId: string, response: string) =>
+    apiFetch<any>(`/claims/${claimId}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ response }),
+    }),
+
+  // Complete claim and release reward (owner only)
+  complete: (claimId: string) =>
+    apiFetch<any>(`/claims/${claimId}/complete`, {
+      method: 'POST',
     }),
 };
 
