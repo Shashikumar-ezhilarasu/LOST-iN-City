@@ -18,7 +18,8 @@ public class UserService {
     public User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(
+                        () -> new RuntimeException("User not found with email: " + email + ". Please login again."));
     }
 
     @Transactional(readOnly = true)
@@ -30,7 +31,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResponse getUserById(String userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
         return mapToResponse(user);
     }
 
@@ -89,8 +90,14 @@ public class UserService {
                 .phone(user.getPhone())
                 .role(user.getRole().name().toLowerCase())
                 .score(user.getScore())
+                .coins(user.getCoins())
+                .lifetimeEarnings(user.getLifetimeEarnings())
+                .lifetimeSpent(user.getLifetimeSpent())
+                .badges(user.getBadges())
+                .skills(user.getSkills())
                 .foundReportsCount(user.getFoundReportsCount())
                 .lostReportsCount(user.getLostReportsCount())
+                .itemsReturnedCount(user.getItemsReturnedCount())
                 .questsCompletedCount(user.getQuestsCompletedCount())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())

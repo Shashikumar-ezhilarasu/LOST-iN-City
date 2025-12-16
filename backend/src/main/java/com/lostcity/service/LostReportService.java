@@ -111,6 +111,15 @@ public class LostReportService {
         return new PageImpl<>(responses, PageRequest.of(page - 1, pageSize, sortObj), total);
     }
 
+    @Transactional(readOnly = true)
+    public List<LostReportResponse> getMyLostReports() {
+        User currentUser = userService.getCurrentUser();
+        List<LostReport> reports = lostReportRepository.findByReportedByOrderByCreatedAtDesc(currentUser);
+        return reports.stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
     private LostReportResponse mapToResponse(LostReport report) {
         return LostReportResponse.builder()
                 .id(report.getId())
@@ -125,7 +134,7 @@ public class LostReportService {
                 .latitude(report.getLatitude())
                 .longitude(report.getLongitude())
                 .locationName(report.getLocationName())
-                .status(report.getStatus().name().toLowerCase())
+                .status(report.getStatus().name())
                 .lostAt(report.getLostAt())
                 .reportedBy(LostReportResponse.UserSummary.builder()
                         .id(report.getReportedBy().getId())
@@ -134,6 +143,8 @@ public class LostReportService {
                         .build())
                 .visibility(report.getVisibility().name().toLowerCase())
                 .matchedFoundItemId(report.getMatchedFoundItemId())
+                .approvedClaimId(report.getApprovedClaimId())
+                .rewardReleased(report.getRewardReleased())
                 .createdAt(report.getCreatedAt())
                 .updatedAt(report.getUpdatedAt())
                 .build();

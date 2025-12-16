@@ -13,7 +13,11 @@ public interface UserRepository extends MongoRepository<User, String> {
 
     Optional<User> findByEmail(String email);
 
+    Optional<User> findByClerkId(String clerkId);
+
     boolean existsByEmail(String email);
+
+    boolean existsByClerkId(String clerkId);
 
     @Query(value = "{}", sort = "{ 'score': -1 }")
     List<User> findAllOrderByScoreDesc();

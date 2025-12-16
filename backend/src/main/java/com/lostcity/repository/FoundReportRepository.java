@@ -1,6 +1,7 @@
 package com.lostcity.repository;
 
 import com.lostcity.model.FoundReport;
+import com.lostcity.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -13,6 +14,8 @@ import java.util.List;
 public interface FoundReportRepository extends MongoRepository<FoundReport, String> {
 
     Page<FoundReport> findByReportedById(String userId, Pageable pageable);
+
+    List<FoundReport> findByReportedByOrderByCreatedAtDesc(User user);
 
     @Query("{ $and: [ { 'latitude': { $ne: null } }, { 'longitude': { $ne: null } } ] }")
     List<FoundReport> findAllWithLocation();

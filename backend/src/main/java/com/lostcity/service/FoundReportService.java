@@ -111,6 +111,15 @@ public class FoundReportService {
         return new PageImpl<>(responses, PageRequest.of(page - 1, pageSize, sortObj), total);
     }
 
+    @Transactional(readOnly = true)
+    public List<FoundReportResponse> getMyFoundReports() {
+        User currentUser = userService.getCurrentUser();
+        List<FoundReport> reports = foundReportRepository.findByReportedByOrderByCreatedAtDesc(currentUser);
+        return reports.stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
     private FoundReportResponse mapToResponse(FoundReport report) {
         return FoundReportResponse.builder()
                 .id(report.getId())
