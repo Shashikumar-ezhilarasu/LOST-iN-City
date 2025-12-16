@@ -58,6 +58,11 @@ public class LostReport {
 
     private String matchedFoundItemId;
 
+    private String approvedClaimId; // ID of the approved claim
+
+    @Builder.Default
+    private Boolean rewardReleased = false; // Track if reward has been paid
+
     @CreatedDate
     private OffsetDateTime createdAt;
 
