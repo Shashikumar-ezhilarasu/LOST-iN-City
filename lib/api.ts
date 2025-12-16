@@ -74,6 +74,16 @@ export interface Report {
   createdAt: string;
 }
 
+export interface LostReportResponse extends Report {
+  lostAt: string;
+  rewardAmount?: number;
+}
+
+export interface FoundReportResponse extends Report {
+  foundAt: string;
+  foundCondition?: string;
+}
+
 export interface PageResponse<T> {
   content: T[];
   totalElements: number;
