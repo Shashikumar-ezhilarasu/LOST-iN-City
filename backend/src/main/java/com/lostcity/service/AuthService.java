@@ -19,62 +19,63 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AuthService {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final AuthenticationManager authenticationManager;
-    private final UserDetailsService userDetailsService;
+        private final UserRepository userRepository;
+        private final PasswordEncoder passwordEncoder;
+        private final JwtTokenProvider jwtTokenProvider;
+        private final AuthenticationManager authenticationManager;
+        private final UserDetailsService userDetailsService;
 
-    @Transactional
-    public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+        @Transactional
+        public AuthResponse register(RegisterRequest request) {
+                if (userRepository.existsByEmail(request.getEmail())) {
+                        throw new RuntimeException("Email already exists");
+                }
+
+                User user = User.builder()
+                                .email(request.getEmail())
+                                .password(passwordEncoder.encode(request.getPassword()))
+                                .displayName(request.getDisplayName())
+                                .role(User.Role.USER)
+                                .build();
+
+                user = userRepository.save(user);
+
+                UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+                String token = jwtTokenProvider.generateToken(userDetails);
+
+                return AuthResponse.builder()
+                                .accessToken(token)
+                                .expiresIn(jwtTokenProvider.getExpirationTime())
+                                .user(AuthResponse.UserSummary.builder()
+                                                .id(user.getId())
+                                                .displayName(user.getDisplayName())
+                                                .avatarUrl(user.getAvatarUrl())
+                                                .build())
+                                .build();
         }
 
-        User user = User.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .displayName(request.getDisplayName())
-                .role(User.Role.USER)
-                .build();
+        @Transactional(readOnly = true)
+        public AuthResponse login(LoginRequest request) {
+                authenticationManager.authenticate(
+                                new UsernamePasswordAuthenticationToken(
+                                                request.getEmail(),
+                                                request.getPassword()));
 
-        user = userRepository.save(user);
+                User user = userRepository.findByEmail(request.getEmail())
+                                .orElseThrow(() -> new RuntimeException(
+                                                "User not found with email: " + request.getEmail()));
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-        String token = jwtTokenProvider.generateToken(userDetails);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+                String token = jwtTokenProvider.generateToken(userDetails);
 
-        return AuthResponse.builder()
-                .accessToken(token)
-                .expiresIn(jwtTokenProvider.getExpirationTime())
-                .user(AuthResponse.UserSummary.builder()
-                        .id(user.getId())
-                        .displayName(user.getDisplayName())
-                        .avatarUrl(user.getAvatarUrl())
-                        .build())
-                .build();
-    }
-
-    @Transactional(readOnly = true)
-    public AuthResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()));
-
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-        String token = jwtTokenProvider.generateToken(userDetails);
-
-        return AuthResponse.builder()
-                .accessToken(token)
-                .expiresIn(jwtTokenProvider.getExpirationTime())
-                .user(AuthResponse.UserSummary.builder()
-                        .id(user.getId())
-                        .displayName(user.getDisplayName())
-                        .avatarUrl(user.getAvatarUrl())
-                        .build())
-                .build();
-    }
+                return AuthResponse.builder()
+                                .accessToken(token)
+                                .expiresIn(jwtTokenProvider.getExpirationTime())
+                                .user(AuthResponse.UserSummary.builder()
+                                                .id(user.getId())
+                                                .displayName(user.getDisplayName())
+                                                .avatarUrl(user.getAvatarUrl())
+                                                .build())
+                                .build();
+        }
 }
