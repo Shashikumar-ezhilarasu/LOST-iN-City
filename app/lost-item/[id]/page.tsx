@@ -458,6 +458,67 @@ export default function LostItemDetailPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* Approved Claim - Waiting for Reward Release */}
+          {isOwner && approvedClaim && !approvedClaim.rewardPaid && (
+            <Card className="fantasy-card bg-green-900/20 border-2 border-green-600">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="fantasy-title text-lg text-green-400">✓ CLAIM APPROVED</h2>
+                  <span className="text-xs bg-green-900/50 border border-green-600 text-green-400 px-3 py-1 rounded-full font-bold">
+                    READY TO RELEASE
+                  </span>
+                </div>
+
+                <div className="bg-medieval-brown-light p-4 rounded-lg space-y-3">
+                  <div className="flex items-start space-x-3">
+                    <Avatar className="w-12 h-12">
+                      <AvatarFallback>{approvedClaim.claimer.displayName[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <p className="text-medieval-gold font-semibold">{approvedClaim.claimer.displayName}</p>
+                      <p className="text-medieval-beige/60 text-xs">{approvedClaim.claimer.email}</p>
+                      <p className="text-medieval-beige/80 text-sm mt-2">{approvedClaim.claimerMessage}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-medieval-gold/10 border-2 border-medieval-gold rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-medieval-beige font-semibold">Reward Amount:</span>
+                    <div className="flex items-center space-x-2 text-medieval-gold font-bold text-xl">
+                      <Coins className="w-6 h-6" />
+                      <span>{approvedClaim.rewardAmount.toFixed(2)}</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-medieval-beige/70">
+                    This will be transferred from your wallet to the finder.
+                  </p>
+                </div>
+
+                <div className="bg-blue-900/20 border-2 border-blue-600 rounded-lg p-4">
+                  <p className="text-xs text-blue-400">
+                    <span className="font-bold">Important:</span> Only release the reward after you have physically received your item back from the finder.
+                  </p>
+                </div>
+
+                <Button
+                  onClick={() => handleCompleteAndPayReward(approvedClaim.id)}
+                  disabled={processingClaim === approvedClaim.id}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-6"
+                >
+                  {processingClaim === approvedClaim.id ? (
+                    'Processing...'
+                  ) : (
+                    <>
+                      <Coins className="w-5 h-5 mr-2" />
+                      VERIFY & RELEASE REWARD
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Right Column - Owner & Actions */}
