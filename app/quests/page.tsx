@@ -1,15 +1,73 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useAuth } from '@clerk/nextjs';
 import { Gift, Plus, Search, Target, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 
+interface Quest {
+  id: string;
+  title: string;
+  description: string;
+  reward: number;
+  status: string;
+  progress: number;
+  maxProgress: number;
+  questType: string;
+}
+
 export default function QuestsPage() {
-  const dailyQuests = [
-    { id: 1, title: "Find 3 items", progress: 60, reward: 500 },
-    { id: 2, title: "Post 1 lost item", progress: 100, reward: 200 },
-    { id: 3, title: "Chat with 2 finders", progress: 50, reward: 300 },
-  ];
+  const { getToken, isSignedIn } = useAuth();
+  const [quests, setQuests] = useState<Quest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isSignedIn) {
+      fetchQuests();
+    }
+  }, [isSignedIn]);
+
+  const fetchQuests = async () => {
+    try {
+      setLoading(true);
+      const token = await getToken();
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/quests?page=1&pageSize=20`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      setQuests(result.data || []);
+      setError(null);
+    } catch (err: any) {
+      console.error('Error fetching quests:', err);
+      setError(err.message || 'Failed to fetch quests');
+      // Fallback to mock data
+      setQuests([
+        { id: '1', title: 'Find 3 items', description: '', progress: 0, maxProgress: 3, reward: 500, status: 'AVAILABLE', questType: 'DAILY' },
+        { id: '2', title: 'Post 1 lost item', description: '', progress: 0, maxProgress: 1, reward: 200, status: 'AVAILABLE', questType: 'DAILY' },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateProgress = (quest: Quest) => {
+    return Math.round((quest.progress / quest.maxProgress) * 100);
+  };
+
+  const dailyQuests = quests.filter(q => q.questType === 'DAILY');
 
   const leaderboard = [
     { rank: 1, name: "DragonSlayer99", coins: 50000 },
@@ -71,39 +129,48 @@ export default function QuestsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {dailyQuests.map((quest) => (
-              <div key={quest.id} className="bg-medieval-brown p-4 rounded-lg border-2 border-medieval-gold/50">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-medieval-beige font-semibold">
-                    {quest.title}
-                  </h3>
-                  <span className="text-medieval-gold text-sm font-bold">
-                    +{quest.reward} 🪙
-                  </span>
-                </div>
-                
-                <Progress value={quest.progress} className="mb-2 h-3" />
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-medieval-beige/70">
-                    {quest.progress}% Complete
-                  </span>
-                  
-                  {quest.progress === 100 ? (
-                    <Button className="fantasy-button py-1 px-3 text-xs">
-                      CLAIM
-                    </Button>
-                  ) : (
-                    <Button 
-                      className="bg-medieval-brown-light text-medieval-beige/50 py-1 px-3 text-xs border-2 border-medieval-gold/30 rounded-lg"
-                      disabled
-                    >
-                      In Progress
-                    </Button>
-                  )}
-                </div>
+            {dailyQuests.length > 0 ? (
+              dailyQuests.map((quest) => {
+                const progress = calculateProgress(quest);
+                return (
+                  <div key={quest.id} className="bg-medieval-brown p-4 rounded-lg border-2 border-medieval-gold/50">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-medieval-beige font-semibold">
+                        {quest.title}
+                      </h3>
+                      <span className="text-medieval-gold text-sm font-bold">
+                        +{quest.reward} 🪙
+                      </span>
+                    </div>
+                    
+                    <Progress value={progress} className="mb-2 h-3" />
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-medieval-beige/70">
+                        {progress}% Complete ({quest.progress}/{quest.maxProgress})
+                      </span>
+                      
+                      {quest.status === 'COMPLETED' ? (
+                        <Button className="fantasy-button py-1 px-3 text-xs">
+                          CLAIM
+                        </Button>
+                      ) : (
+                        <Button 
+                          className="bg-medieval-brown-light text-medieval-beige/50 py-1 px-3 text-xs border-2 border-medieval-gold/30 rounded-lg"
+                          disabled
+                        >
+                          In Progress
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-center text-medieval-beige/60 py-8">
+                No quests available at the moment
               </div>
-            ))}
+            )}
           </CardContent>
         </Card>
 
