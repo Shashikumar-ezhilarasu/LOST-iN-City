@@ -19,6 +19,7 @@ public class ClaimService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final CurrencyService currencyService;
+    private final RewardCalculationService rewardCalculationService;
 
     @Transactional
     public Claim createClaim(String lostReportId, String foundReportId, String message) {
@@ -45,13 +46,16 @@ public class ClaimService {
             }
         }
 
+        // Calculate dynamic reward amount
+        Double calculatedReward = rewardCalculationService.calculateReward(lostReport);
+
         Claim claim = Claim.builder()
                 .lostReport(lostReport)
                 .foundReport(foundReport)
                 .claimer(claimer)
                 .owner(lostReport.getReportedBy())
                 .claimerMessage(message)
-                .rewardAmount(lostReport.getRewardAmount())
+                .rewardAmount(calculatedReward) // Use dynamically calculated reward
                 .status(Claim.ClaimStatus.PENDING)
                 .build();
 
@@ -163,14 +167,23 @@ public class ClaimService {
             throw new RuntimeException("Reward has already been released for this lost report");
         }
 
-        Double rewardAmount = claim.getRewardAmount();
+        // Recalculate reward to ensure it's up to date
+        Double rewardAmount = rewardCalculationService.calculateReward(lostReport);
+        claim.setRewardAmount(rewardAmount);
+
         if (rewardAmount != null && rewardAmount > 0) {
-            // Award coins using CurrencyService
             User claimer = claim.getClaimer();
+
+            // Award coins using CurrencyService
             currencyService.awardItemReward(claimer, rewardAmount, lostReport.getId(), claimId);
+
+            // Calculate and award reputation points dynamically
+            Integer reputationPoints = rewardCalculationService.calculateReputationPoints(rewardAmount);
+            claimer.setScore(claimer.getScore() + reputationPoints);
 
             // Update items returned count
             claimer.setItemsReturnedCount(claimer.getItemsReturnedCount() + 1);
+
             userRepository.save(claimer);
         }
 

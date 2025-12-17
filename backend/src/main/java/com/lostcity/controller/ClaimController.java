@@ -3,6 +3,8 @@ package com.lostcity.controller;
 import com.lostcity.dto.response.ApiResponse;
 import com.lostcity.model.Claim;
 import com.lostcity.service.ClaimService;
+import com.lostcity.service.RewardCalculationService;
+import com.lostcity.repository.LostReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,8 @@ import java.util.Map;
 public class ClaimController {
 
     private final ClaimService claimService;
+    private final RewardCalculationService rewardCalculationService;
+    private final LostReportRepository lostReportRepository;
 
     @PostMapping
     public ResponseEntity<ApiResponse<Claim>> createClaim(@RequestBody Map<String, String> request) {
@@ -77,5 +81,18 @@ public class ClaimController {
     public ResponseEntity<ApiResponse<Claim>> completeClaimAndReleaseReward(@PathVariable String id) {
         Claim claim = claimService.completeClaimAndReleaseReward(id);
         return ResponseEntity.ok(ApiResponse.success(claim));
+    }
+
+    /**
+     * Get reward calculation breakdown for a lost report
+     * Shows how the reward is calculated dynamically
+     */
+    @GetMapping("/reward-breakdown/{lostReportId}")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getRewardBreakdown(@PathVariable String lostReportId) {
+        var lostReport = lostReportRepository.findById(lostReportId)
+                .orElseThrow(() -> new RuntimeException("Lost report not found"));
+
+        Map<String, Object> breakdown = rewardCalculationService.getRewardBreakdown(lostReport);
+        return ResponseEntity.ok(ApiResponse.success(breakdown));
     }
 }

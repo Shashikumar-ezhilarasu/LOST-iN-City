@@ -124,6 +124,8 @@ public class CurrencyService {
 
     /**
      * Award reward coins for finding and returning an item
+     * Note: Score/reputation is calculated separately in ClaimService using
+     * RewardCalculationService
      */
     @Transactional
     public Transaction awardItemReward(User finder, Double amount, String lostReportId, String claimId) {
@@ -135,9 +137,8 @@ public class CurrencyService {
         transaction.setRelatedLostReportId(lostReportId);
         transaction.setRelatedClaimId(claimId);
 
-        // Award bonus score
-        finder.setScore(finder.getScore() + (int) (amount / 10));
-        userRepository.save(finder);
+        // Note: Score is now calculated in ClaimService to avoid duplication
+        // No score update here - handled by RewardCalculationService
 
         return transactionRepository.save(transaction);
     }

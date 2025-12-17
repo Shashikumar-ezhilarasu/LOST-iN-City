@@ -10,14 +10,27 @@ interface ClaimsManagerProps {
   lostReportId: string;
 }
 
+interface RewardBreakdown {
+  baseReward: number;
+  timeFactor: number;
+  urgencyFactor: number;
+  ownerSetReward: number | null;
+  dynamicCalculation: number;
+  finalReward: number;
+  reputationPoints: number;
+}
+
 export default function ClaimsManager({ lostReportId }: ClaimsManagerProps) {
   const { isSignedIn, getToken } = useAuth();
   const [claims, setClaims] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
+  const [rewardBreakdown, setRewardBreakdown] = useState<RewardBreakdown | null>(null);
+  const [showBreakdown, setShowBreakdown] = useState(false);
 
   useEffect(() => {
     loadClaims();
+    loadRewardBreakdown();
   }, [lostReportId]);
 
   const loadClaims = async () => {
@@ -31,6 +44,20 @@ export default function ClaimsManager({ lostReportId }: ClaimsManagerProps) {
       console.error('Error loading claims:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadRewardBreakdown = async () => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/claims/reward-breakdown/${lostReportId}`, {
+        cache: 'no-store'
+      });
+      const result = await response.json();
+      if (result.data) {
+        setRewardBreakdown(result.data);
+      }
+    } catch (error) {
+      console.error('Error loading reward breakdown:', error);
     }
   };
 
@@ -100,8 +127,62 @@ export default function ClaimsManager({ lostReportId }: ClaimsManagerProps) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold">Claims for This Item ({claims.length})</h2>
-      {claims.map((claim) => (
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold">Claims for This Item ({claims.length})</h2>
+        {rewardBreakdown && (
+          <Button
+            onClick={() => setShowBreakdown(!showBreakdown)}
+            variant="outline"
+            size="sm"
+          >
+            {showBreakdown ? '📊 Hide' : '📊 Show'} Reward Details
+          </Button>
+        )}
+      </div>
+
+      {showBreakdown && rewardBreakdown && (
+        <Card className="p-4 bg-yellow-50 border-yellow-200">
+          <h3 className="font-bold text-lg mb-3">🎁 Dynamic Reward Calculation</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span>Base Reward (Category):</span>
+              <span className="font-semibold">${rewardBreakdown.baseReward.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Time Factor (×{rewardBreakdown.timeFactor.toFixed(2)}):</span>
+              <span className="text-gray-600">Based on how long ago item was lost</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Urgency Factor (×{rewardBreakdown.urgencyFactor.toFixed(2)}):</span>
+              <span className="text-gray-600">Based on details provided</span>
+            </div>
+            {rewardBreakdown.ownerSetReward && (
+              <div className="flex justify-between text-blue-600">
+                <span>Your Set Reward:</span>
+                <span className="font-semibold">${rewardBreakdown.ownerSetReward.toFixed(2)}</span>
+              </div>
+            )}
+            <div className="border-t pt-2 flex justify-between text-lg font-bold text-green-600">
+              <span>Final Reward:</span>
+              <span>💰 ${rewardBreakdown.finalReward.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-purple-600">
+              <span>Reputation Points Awarded:</span>
+              <span className="font-semibold">⭐ {rewardBreakdown.reputationPoints} pts</span>
+            </div>
+          </div>
+          <p className="text-xs text-gray-600 mt-3">
+            💡 Rewards are calculated dynamically based on category, time, and details. The finder will receive coins and reputation points when you release the reward!
+          </p>
+        </Card>
+      )}
+
+      {claims.length === 0 ? (
+        <div className="text-center p-4 text-gray-600">
+          No claims yet. When someone finds your item, their claim will appear here.
+        </div>
+      ) : (
+        claims.map((claim) => (
         <Card key={claim.id} className="p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div>
@@ -183,7 +264,7 @@ export default function ClaimsManager({ lostReportId }: ClaimsManagerProps) {
             Submitted: {new Date(claim.createdAt).toLocaleString()}
           </p>
         </Card>
-      ))}
+      )))}
     </div>
   );
 }
