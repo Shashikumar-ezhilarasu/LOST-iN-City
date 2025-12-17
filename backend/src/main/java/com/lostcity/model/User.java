@@ -45,7 +45,7 @@ public class User {
     private Integer score = 0;
 
     @Builder.Default
-    private Double coins = 0.0; // Virtual currency (LostCity Coins)
+    private Double coins = 500.0; // Virtual currency (LostCity Coins) - Everyone starts with 500
 
     @Builder.Default
     private Double lifetimeEarnings = 0.0; // Total coins ever earned
