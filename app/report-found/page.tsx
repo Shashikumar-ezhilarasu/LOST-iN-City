@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Upload, MapPin, Calendar, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useUser, useAuth } from "@clerk/nextjs";
 import { foundReportsAPI, imageToBase64, FoundReportRequest } from "@/lib/api";
 
 const categories = [
@@ -20,9 +21,17 @@ const categories = [
 
 export default function ReportFoundPage() {
   const router = useRouter();
+  const { isSignedIn, isLoaded } = useUser();
+  const { getToken } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [images, setImages] = useState<File[]>([]);
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.push('/sign-in');
+    }
+  }, [isLoaded, isSignedIn, router]);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -56,6 +65,12 @@ export default function ReportFoundPage() {
     setError(null);
 
     try {
+      // Get Clerk authentication token
+      const token = await getToken();
+      if (!token) {
+        throw new Error('Please sign in to report a found item');
+      }
+
       const imageBase64 = await Promise.all(
         images.map(img => imageToBase64(img))
       );
@@ -78,9 +93,17 @@ export default function ReportFoundPage() {
         holdingInstructions: holdingInstructions || undefined,
       };
 
-      const response = await foundReportsAPI.create(reportData);
-      alert('Found item report created successfully!');
-      router.push('/browse-found');
+      const response = await foundReportsAPI.create(reportData, token);
+      
+      // Success! Show message and redirect to the browse page
+      alert('✅ Found item report created successfully! Redirecting...');
+      
+      // Small delay to ensure backend has processed the request
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Navigate and force refresh
+      await router.push('/browse-found');
+      router.refresh();
     } catch (err: any) {
       setError(err.message || 'Failed to create report.');
       console.error('Error creating found report:', err);
@@ -88,6 +111,20 @@ export default function ReportFoundPage() {
       setLoading(false);
     }
   };
+
+  // Show loading while checking authentication
+  if (!isLoaded) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-medieval-gold"></div>
+      </div>
+    );
+  }
+
+  // Don't render if not signed in (will redirect)
+  if (!isSignedIn) {
+    return null;
+  }
 
   return (
     <div className="space-y-6 py-6">
@@ -187,6 +224,7 @@ export default function ReportFoundPage() {
                 value={formData.foundDate}
                 onChange={(e) => setFormData({ ...formData, foundDate: e.target.value })}
                 max={new Date().toISOString().split('T')[0]}
+                aria-label="Date Found"
                 className="w-full bg-medieval-brown border-2 border-medieval-gold/50 rounded-lg px-4 py-3 text-medieval-beige focus:border-medieval-gold focus:outline-none focus:ring-2 focus:ring-medieval-gold/50"
               />
             </div>
@@ -199,6 +237,7 @@ export default function ReportFoundPage() {
                 type="time"
                 value={formData.foundTime}
                 onChange={(e) => setFormData({ ...formData, foundTime: e.target.value })}
+                aria-label="Time Found"
                 className="w-full bg-medieval-brown border-2 border-medieval-gold/50 rounded-lg px-4 py-3 text-medieval-beige focus:border-medieval-gold focus:outline-none focus:ring-2 focus:ring-medieval-gold/50"
               />
             </div>
@@ -264,6 +303,7 @@ export default function ReportFoundPage() {
                       <button
                         type="button"
                         onClick={() => removeImage(index)}
+                        aria-label={`Remove image ${index + 1}`}
                         className="absolute top-1 right-1 bg-red-600 rounded-full p-1 hover:bg-red-700 transition-colors"
                       >
                         <X className="w-4 h-4 text-white" />
@@ -326,6 +366,7 @@ export default function ReportFoundPage() {
               required
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              aria-label="Item Category"
               className="w-full bg-medieval-brown border-2 border-medieval-gold/50 rounded-lg px-4 py-3 text-medieval-beige focus:border-medieval-gold focus:outline-none focus:ring-2 focus:ring-medieval-gold/50"
             >
               {categories.map((cat) => (
