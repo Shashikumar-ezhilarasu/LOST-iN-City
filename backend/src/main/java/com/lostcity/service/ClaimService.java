@@ -172,10 +172,21 @@ public class ClaimService {
         claim.setRewardAmount(rewardAmount);
 
         if (rewardAmount != null && rewardAmount > 0) {
-            User claimer = claim.getClaimer();
+            User owner = currentUser; // The person who lost the item
+            User claimer = claim.getClaimer(); // The person who found it
 
-            // Award coins using CurrencyService
-            currencyService.awardItemReward(claimer, rewardAmount, lostReport.getId(), claimId);
+            // Check if owner has enough coins
+            if (owner.getCoins() < rewardAmount) {
+                throw new RuntimeException(
+                        String.format(
+                                "Insufficient coins. You have %.2f coins but need %.2f. Please add more coins to your account.",
+                                owner.getCoins(), rewardAmount));
+            }
+
+            // Transfer coins from owner to finder using CurrencyService
+            String description = String.format("Reward for returning: %s", lostReport.getTitle());
+            currencyService.transferCoins(owner, claimer, rewardAmount,
+                    Transaction.TransactionType.REWARD, description);
 
             // Calculate and award reputation points dynamically
             Integer reputationPoints = rewardCalculationService.calculateReputationPoints(rewardAmount);
