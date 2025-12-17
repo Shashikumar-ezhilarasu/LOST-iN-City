@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { Card } from '@/components/ui/card';
-import { Coins, TrendingUp, TrendingDown, Award } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Coins, TrendingUp, TrendingDown, Award, Plus } from 'lucide-react';
 
 interface WalletStats {
   currentBalance: number;
@@ -17,6 +18,7 @@ export default function WalletDisplay() {
   const { isSignedIn, getToken } = useAuth();
   const [stats, setStats] = useState<WalletStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState(false);
 
   useEffect(() => {
     if (isSignedIn) {
@@ -41,6 +43,42 @@ export default function WalletDisplay() {
       console.error('Error fetching wallet stats:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddCoins = async () => {
+    const amount = prompt('How many coins would you like to add? (Enter a number)');
+    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+      return;
+    }
+
+    setAdding(true);
+    try {
+      const token = await getToken();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/wallet/add-coins`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: Number(amount),
+          payment_method: 'manual'
+        }),
+      });
+
+      if (response.ok) {
+        alert(`Successfully added ${amount} coins! 🎉`);
+        await fetchWalletStats(); // Refresh balance
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.message || 'Failed to add coins'}`);
+      }
+    } catch (error) {
+      console.error('Error adding coins:', error);
+      alert('Error adding coins. Please try again.');
+    } finally {
+      setAdding(false);
     }
   };
 
@@ -76,7 +114,18 @@ export default function WalletDisplay() {
               <span className="text-xl text-yellow-700">coins</span>
             </div>
           </div>
-          <Award className="w-16 h-16 text-yellow-500 opacity-30" />
+          <div className="flex flex-col items-end gap-2">
+            <Award className="w-16 h-16 text-yellow-500 opacity-30" />
+            <Button
+              onClick={handleAddCoins}
+              disabled={adding}
+              className="bg-yellow-600 hover:bg-yellow-700 text-white text-sm"
+              size="sm"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              {adding ? 'Adding...' : 'Add Coins'}
+            </Button>
+          </div>
         </div>
       </Card>
 
