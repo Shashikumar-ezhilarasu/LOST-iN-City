@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useAuth } from '@clerk/nextjs';
 import { ArrowLeft, MapPin, Calendar, User, Coins, MessageSquare, Eye, CheckCircle, AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,38 +10,71 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
+interface FoundItem {
+  id: string;
+  itemName: string;
+  description: string;
+  category: string;
+  foundLocation: string;
+  foundDate: string;
+  foundCondition: string;
+  images: string[];
+  distinguishingFeatures: string[];
+  status: string;
+  reportedBy: {
+    id: string;
+    displayName: string;
+    email: string;
+    itemsFoundCount: number;
+  };
+  createdAt: string;
+}
+
 export default function ItemDetailPage() {
   const params = useParams();
+  const { getToken } = useAuth();
+  const [item, setItem] = useState<FoundItem | null>(null);
+  const [loading, setLoading] = useState(true);
   
-  // Mock data - in real app, fetch based on params.id
-  const item = {
-    id: 1,
-    title: "Brown Leather Wallet",
-    description: "Found this brown leather wallet near the fountain in Central Park. It contains some credit cards and loyalty cards, but no ID or driver's license. The wallet appears to be well-used with a distinctive scratch on the back. There's also a receipt from a local coffee shop dated last week.",
-    location: "Central Park, near the main fountain",
-    exactLocation: "40.7829° N, 73.9654° W",
-    date: "14 Dec 2025",
-    time: "3:30 PM",
-    reward: 500,
-    category: "Accessories",
-    image: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=800&h=600&fit=crop",
-    finder: {
-      name: "KnightFinder",
-      level: 8,
-      itemsFound: 45,
-      rating: 4.8,
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=KnightFinder"
-    },
-    responses: 3,
-    status: "Active",
-    distinguishingFeatures: [
-      "Brown leather material",
-      "Scratch on back side",
-      "Coffee shop receipt inside",
-      "Multiple credit cards",
-      "No ID or driver's license"
-    ]
+  useEffect(() => {
+    fetchItemDetails();
+  }, [params.id]);
+
+  const fetchItemDetails = async () => {
+    try {
+      const token = await getToken();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/found-reports/${params.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setItem(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching item details:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-medieval-gold">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!item) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-red-500">Item not found</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 py-6">
@@ -57,16 +92,9 @@ export default function ItemDetailPage() {
           <div className="flex items-center space-x-3">
             <CheckCircle className="w-6 h-6 text-green-500" />
             <div>
-              <p className="text-medieval-gold font-bold">QUEST ACTIVE</p>
+              <p className="text-medieval-gold font-bold">{item.status}</p>
               <p className="text-xs text-medieval-beige/70">This item is waiting to be claimed</p>
             </div>
-          </div>
-          <div className="text-right">
-            <p className="text-medieval-gold font-bold text-xl flex items-center space-x-1">
-              <Coins className="w-5 h-5" />
-              <span>{item.reward}</span>
-            </p>
-            <p className="text-xs text-medieval-beige/70">Reward</p>
           </div>
         </div>
       </div>
@@ -77,13 +105,19 @@ export default function ItemDetailPage() {
           {/* Image */}
           <Card className="fantasy-card overflow-hidden">
             <div className="relative h-96 w-full">
-              <Image
-                src={item.image}
-                alt={item.title}
-                fill
-                className="object-cover"
-                unoptimized
-              />
+              {item.images && item.images.length > 0 ? (
+                <Image
+                  src={item.images[0]}
+                  alt={item.itemName}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full bg-medieval-brown-light">
+                  <span className="text-medieval-beige/50">No image available</span>
+                </div>
+              )}
             </div>
           </Card>
 
@@ -92,15 +126,11 @@ export default function ItemDetailPage() {
             <CardContent className="p-6 space-y-6">
               <div>
                 <h1 className="fantasy-title text-3xl mb-2">
-                  {item.title}
+                  {item.itemName}
                 </h1>
                 <div className="flex items-center space-x-4 text-sm text-medieval-beige/70">
                   <span className="bg-medieval-gold text-medieval-brown px-3 py-1 rounded-full font-semibold">
                     {item.category}
-                  </span>
-                  <span className="flex items-center space-x-1">
-                    <Eye className="w-4 h-4" />
-                    <span>42 views</span>
                   </span>
                   <span className="flex items-center space-x-1">
                     <MessageSquare className="w-4 h-4" />
@@ -118,17 +148,19 @@ export default function ItemDetailPage() {
               </div>
 
               {/* Distinguishing Features */}
-              <div>
-                <h3 className="fantasy-title text-lg mb-3">DISTINGUISHING FEATURES</h3>
-                <ul className="space-y-2">
-                  {item.distinguishingFeatures.map((feature, index) => (
-                    <li key={index} className="flex items-start space-x-2 text-medieval-beige">
-                      <CheckCircle className="w-4 h-4 text-medieval-gold mt-1 flex-shrink-0" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              {item.distinguishingFeatures && item.distinguishingFeatures.length > 0 && (
+                <div>
+                  <h3 className="fantasy-title text-lg mb-3">DISTINGUISHING FEATURES</h3>
+                  <ul className="space-y-2">
+                    {item.distinguishingFeatures.map((feature, index) => (
+                      <li key={index} className="flex items-start space-x-2 text-medieval-beige">
+                        <CheckCircle className="w-4 h-4 text-medieval-gold mt-1 flex-shrink-0" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {/* Location Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-medieval-brown p-4 rounded-lg border-2 border-medieval-gold/30">
@@ -137,8 +169,7 @@ export default function ItemDetailPage() {
                     <MapPin className="w-4 h-4" />
                     <span className="font-semibold">Location Found</span>
                   </div>
-                  <p className="text-medieval-beige text-sm">{item.location}</p>
-                  <p className="text-medieval-beige/60 text-xs mt-1">{item.exactLocation}</p>
+                  <p className="text-medieval-beige text-sm">{item.foundLocation}</p>
                 </div>
                 
                 <div>
@@ -146,8 +177,13 @@ export default function ItemDetailPage() {
                     <Calendar className="w-4 h-4" />
                     <span className="font-semibold">When Found</span>
                   </div>
-                  <p className="text-medieval-beige text-sm">{item.date}</p>
-                  <p className="text-medieval-beige/60 text-xs mt-1">{item.time}</p>
+                  <p className="text-medieval-beige text-sm">
+                    {new Date(item.foundDate).toLocaleDateString('en-US', { 
+                      month: 'short', 
+                      day: 'numeric', 
+                      year: 'numeric' 
+                    })}
+                  </p>
                 </div>
               </div>
 
@@ -176,31 +212,29 @@ export default function ItemDetailPage() {
               
               <div className="flex items-center space-x-3">
                 <Avatar className="w-16 h-16">
-                  <AvatarImage src={item.finder.avatar} alt={item.finder.name} />
-                  <AvatarFallback>KF</AvatarFallback>
+                  <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${item.reportedBy.displayName}`} alt={item.reportedBy.displayName} />
+                  <AvatarFallback>{item.reportedBy.displayName[0]}</AvatarFallback>
                 </Avatar>
                 
                 <div className="flex-1">
-                  <p className="text-medieval-gold font-bold text-lg">{item.finder.name}</p>
-                  <p className="text-medieval-beige/70 text-sm">Level {item.finder.level} Hero</p>
+                  <p className="text-medieval-gold font-bold text-lg">{item.reportedBy.displayName}</p>
+                  <p className="text-medieval-beige/70 text-sm">Hero</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 pt-3 border-t-2 border-medieval-gold/30">
+              <div className="grid grid-cols-1 gap-3 pt-3 border-t-2 border-medieval-gold/30">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-medieval-gold">{item.finder.itemsFound}</p>
+                  <p className="text-2xl font-bold text-medieval-gold">{item.reportedBy.itemsFoundCount || 0}</p>
                   <p className="text-xs text-medieval-beige/70">Items Found</p>
                 </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-medieval-gold">{item.finder.rating}⭐</p>
-                  <p className="text-xs text-medieval-beige/70">Rating</p>
-                </div>
               </div>
 
-              <Button className="fantasy-button w-full">
-                <User className="w-4 h-4 mr-2" />
-                VIEW PROFILE
-              </Button>
+              <Link href={`/profile`}>
+                <Button className="fantasy-button w-full">
+                  <User className="w-4 h-4 mr-2" />
+                  VIEW PROFILE
+                </Button>
+              </Link>
             </CardContent>
           </Card>
 
@@ -208,11 +242,9 @@ export default function ItemDetailPage() {
           <Card className="fantasy-card bg-medieval-gold/10">
             <CardContent className="p-6 space-y-4">
               <div className="text-center">
-                <p className="text-medieval-beige/80 text-sm mb-2">Reward Amount</p>
-                <p className="text-4xl font-bold text-medieval-gold flex items-center justify-center space-x-2">
-                  <Coins className="w-8 h-8" />
-                  <span>{item.reward}</span>
-                </p>
+                <p className="text-medieval-beige/80 text-sm mb-2">This is a Found Item</p>
+                <p className="text-medieval-gold font-bold">Contact the finder to claim</p>
+              </div>
               </div>
 
               <Button className="fantasy-button w-full py-6 text-lg">
