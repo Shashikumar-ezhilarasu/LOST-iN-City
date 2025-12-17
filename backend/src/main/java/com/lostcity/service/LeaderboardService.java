@@ -42,6 +42,9 @@ public class LeaderboardService {
                 })
                 .collect(Collectors.toList());
 
+        // Ensure page is at least 1
+        page = Math.max(1, page);
+
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         int start = (int) pageable.getOffset();
         int end = Math.min((start + pageable.getPageSize()), entries.size());

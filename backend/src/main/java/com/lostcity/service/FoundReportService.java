@@ -68,6 +68,9 @@ public class FoundReportService {
             int page,
             int pageSize,
             String sort) {
+        // Ensure page is at least 1
+        page = Math.max(1, page);
+
         Query query = new Query();
         List<Criteria> criteriaList = new ArrayList<>();
 

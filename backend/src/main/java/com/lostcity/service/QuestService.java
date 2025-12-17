@@ -29,6 +29,9 @@ public class QuestService {
 
     @Transactional(readOnly = true)
     public Page<QuestResponse> getQuests(String statusFilter, int page, int pageSize) {
+        // Ensure page is at least 1
+        page = Math.max(1, page);
+
         User currentUser = userService.getCurrentUser();
         Pageable pageable = PageRequest.of(page - 1, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
 

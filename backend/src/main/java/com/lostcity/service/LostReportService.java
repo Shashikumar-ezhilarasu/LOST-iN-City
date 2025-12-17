@@ -68,6 +68,9 @@ public class LostReportService {
             int page,
             int pageSize,
             String sort) {
+        // Ensure page is at least 1
+        page = Math.max(1, page);
+
         Query query = new Query();
         List<Criteria> criteriaList = new ArrayList<>();
 
@@ -154,11 +157,15 @@ public class LostReportService {
         return LostReportResponse.builder()
                 .id(report.getId())
                 .title(report.getTitle())
+                .description(report.getDescription())
                 .category(report.getCategory())
+                .images(report.getImages())
+                .tags(report.getTags())
+                .color(report.getColor())
+                .brand(report.getBrand())
                 .locationName(report.getLocationName())
                 .lostAt(report.getLostAt())
                 .status(report.getStatus().name().toLowerCase())
-                .tags(report.getTags())
                 .rewardAmount(report.getRewardAmount())
                 .createdAt(report.getCreatedAt())
                 .build();
