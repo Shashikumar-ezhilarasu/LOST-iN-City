@@ -1,74 +1,71 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useAuth } from '@clerk/nextjs';
 import { Trophy, Crown, Medal, Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
+interface LeaderboardEntry {
+  rank: number;
+  userId: string;
+  displayName: string;
+  coins: number;
+  itemsFound: number;
+  itemsReturned: number;
+  level: number;
+}
+
 export default function LeaderboardPage() {
-  const topPlayers = [
-    { 
-      rank: 1, 
-      name: "DragonSlayer99", 
-      coins: 50000, 
-      level: 15,
-      itemsFound: 120,
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=DragonSlayer99"
-    },
-    { 
-      rank: 2, 
-      name: "LostItemHunter", 
-      coins: 45000, 
-      level: 14,
-      itemsFound: 105,
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=LostItemHunter"
-    },
-    { 
-      rank: 3, 
-      name: "QuestMaster", 
-      coins: 40000, 
-      level: 13,
-      itemsFound: 95,
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=QuestMaster"
-    },
-    { 
-      rank: 4, 
-      name: "TreasureFinder", 
-      coins: 35000, 
-      level: 12,
-      itemsFound: 88,
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=TreasureFinder"
-    },
-    { 
-      rank: 5, 
-      name: "HeroOfRealm", 
-      coins: 30000, 
-      level: 11,
-      itemsFound: 75,
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=HeroOfRealm"
-    },
-    { 
-      rank: 6, 
-      name: "KnightFinder", 
-      coins: 28000, 
-      level: 10,
-      itemsFound: 70,
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=KnightFinder"
-    },
-    { 
-      rank: 7, 
-      name: "GoldSeeker", 
-      coins: 25000, 
-      level: 10,
-      itemsFound: 65,
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=GoldSeeker"
-    },
-    { 
-      rank: 8, 
-      name: "AdventureQueen", 
-      coins: 22000, 
-      level: 9,
-      itemsFound: 60,
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=AdventureQueen"
-    },
-  ];
+  const { getToken, isSignedIn } = useAuth();
+  const [topPlayers, setTopPlayers] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isSignedIn) {
+      fetchLeaderboard();
+    }
+  }, [isSignedIn]);
+
+  const fetchLeaderboard = async () => {
+    try {
+      setLoading(true);
+      const token = await getToken();
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/leaderboard?page=1&pageSize=20`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      setTopPlayers(result.data || []);
+      setError(null);
+    } catch (err: any) {
+      console.error('Error fetching leaderboard:', err);
+      setError(err.message || 'Failed to fetch leaderboard');
+      // Fallback to mock data
+      setTopPlayers([
+        { 
+          rank: 1, 
+          userId: '1',
+          displayName: "DragonSlayer99", 
+          coins: 50000, 
+          level: 15,
+          itemsFound: 120,
+          itemsReturned: 100,
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -119,7 +116,7 @@ export default function LeaderboardPage() {
         <div className="flex flex-col items-center mt-8">
           <div className="relative">
             <Avatar className="w-16 h-16 md:w-20 md:h-20 border-4 border-gray-400">
-              <AvatarImage src={topPlayers[1].avatar} alt={topPlayers[1].name} />
+              <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${topPlayers[1].displayName}`} alt={topPlayers[1].displayName} />
               <AvatarFallback>2</AvatarFallback>
             </Avatar>
             <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
@@ -128,7 +125,7 @@ export default function LeaderboardPage() {
           </div>
           <div className="fantasy-card p-3 mt-4 text-center w-full">
             <p className="text-xs md:text-sm font-bold text-medieval-gold truncate">
-              {topPlayers[1].name}
+              {topPlayers[1].displayName}
             </p>
             <p className="text-xs text-medieval-beige/80">
               {topPlayers[1].coins.toLocaleString()} 🪙
@@ -140,7 +137,7 @@ export default function LeaderboardPage() {
         <div className="flex flex-col items-center">
           <div className="relative">
             <Avatar className="w-20 h-20 md:w-24 md:h-24 border-4 border-yellow-400 shadow-2xl">
-              <AvatarImage src={topPlayers[0].avatar} alt={topPlayers[0].name} />
+              <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${topPlayers[0].displayName}`} alt={topPlayers[0].displayName} />
               <AvatarFallback>1</AvatarFallback>
             </Avatar>
             <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
@@ -149,7 +146,7 @@ export default function LeaderboardPage() {
           </div>
           <div className="fantasy-card p-4 mt-6 text-center w-full bg-gradient-to-b from-medieval-gold/20 to-medieval-brown-light">
             <p className="text-sm md:text-base font-bold text-medieval-gold truncate">
-              {topPlayers[0].name}
+              {topPlayers[0].displayName}
             </p>
             <p className="text-xs text-medieval-beige/80">
               {topPlayers[0].coins.toLocaleString()} 🪙
@@ -161,7 +158,7 @@ export default function LeaderboardPage() {
         <div className="flex flex-col items-center mt-12">
           <div className="relative">
             <Avatar className="w-14 h-14 md:w-18 md:h-18 border-4 border-amber-700">
-              <AvatarImage src={topPlayers[2].avatar} alt={topPlayers[2].name} />
+              <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${topPlayers[2].displayName}`} alt={topPlayers[2].displayName} />
               <AvatarFallback>3</AvatarFallback>
             </Avatar>
             <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
@@ -170,7 +167,7 @@ export default function LeaderboardPage() {
           </div>
           <div className="fantasy-card p-2 mt-4 text-center w-full">
             <p className="text-xs md:text-sm font-bold text-medieval-gold truncate">
-              {topPlayers[2].name}
+              {topPlayers[2].displayName}
             </p>
             <p className="text-xs text-medieval-beige/80">
               {topPlayers[2].coins.toLocaleString()} 🪙
@@ -198,13 +195,13 @@ export default function LeaderboardPage() {
                 </div>
 
                 <Avatar className="w-10 h-10 md:w-12 md:h-12">
-                  <AvatarImage src={player.avatar} alt={player.name} />
-                  <AvatarFallback>{player.name[0]}</AvatarFallback>
+                  <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${player.displayName}`} alt={player.displayName} />
+                  <AvatarFallback>{player.displayName[0]}</AvatarFallback>
                 </Avatar>
 
                 <div className="flex-1 min-w-0">
                   <p className="text-medieval-beige font-bold text-sm md:text-base truncate">
-                    {player.name}
+                    {player.displayName}
                   </p>
                   <p className="text-medieval-beige/60 text-xs">
                     Level {player.level} • {player.itemsFound} items
