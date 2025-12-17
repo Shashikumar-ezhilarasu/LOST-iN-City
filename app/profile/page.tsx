@@ -48,6 +48,9 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [lostReports, setLostReports] = useState<any[]>([]);
   const [foundReports, setFoundReports] = useState<any[]>([]);
+  const [editingUsername, setEditingUsername] = useState(false);
+  const [newUsername, setNewUsername] = useState('');
+  const [savingUsername, setSavingUsername] = useState(false);
 
   useEffect(() => {
     if (isSignedIn) {
@@ -154,6 +157,42 @@ export default function ProfilePage() {
     if (totalReports < 10) return "4 hours";
     if (totalReports < 20) return "2 hours";
     return "1 hour";
+  };
+
+  const handleSaveUsername = async () => {
+    if (!newUsername.trim()) {
+      alert('Username cannot be empty');
+      return;
+    }
+
+    setSavingUsername(true);
+    try {
+      const token = await getToken();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          displayName: newUsername,
+        }),
+      });
+
+      if (response.ok) {
+        alert('Username updated successfully! 🎉');
+        setEditingUsername(false);
+        await fetchUserData();
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.message || 'Failed to update username'}`);
+      }
+    } catch (error) {
+      console.error('Error saving username:', error);
+      alert('Error updating username. Please try again.');
+    } finally {
+      setSavingUsername(false);
+    }
   };
 
   if (!isLoaded || loading) {
@@ -263,12 +302,46 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div>
-                <h1 className="fantasy-title text-2xl md:text-3xl">
-                  {userBadges.name}
-                </h1>
-                <p className="text-medieval-beige/70 text-sm mb-2">{userBadges.username}</p>
-                <div className="flex items-center space-x-4 text-sm">
+              <div className="flex-1">
+                {editingUsername ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="text"
+                        value={newUsername}
+                        onChange={(e) => setNewUsername(e.target.value)}
+                        placeholder="Enter new username"
+                        className="bg-medieval-brown-light border-2 border-medieval-gold/50 text-medieval-beige px-3 py-2 rounded-md focus:outline-none focus:border-medieval-gold text-lg"
+                        autoFocus
+                      />
+                      <Button
+                        onClick={handleSaveUsername}
+                        disabled={savingUsername}
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2"
+                      >
+                        {savingUsername ? '...' : '✓'}
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setEditingUsername(false);
+                          setNewUsername('');
+                        }}
+                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2"
+                      >
+                        ✕
+                      </Button>
+                    </div>
+                    <p className="text-xs text-medieval-beige/60">This username will be displayed across the site</p>
+                  </div>
+                ) : (
+                  <>
+                    <h1 className="fantasy-title text-2xl md:text-3xl">
+                      {userData?.displayName || userBadges.name}
+                    </h1>
+                    <p className="text-medieval-beige/70 text-sm mb-2">{userBadges.username}</p>
+                  </>
+                )}
+                <div className="flex items-center space-x-4 text-sm mt-2">
                   <span className="text-medieval-gold font-semibold flex items-center space-x-1">
                     <Coins className="w-4 h-4" />
                     <span>{userBadges.totalCoins.toLocaleString()}</span>
@@ -281,9 +354,15 @@ export default function ProfilePage() {
             </div>
 
             <div className="flex space-x-3">
-              <Button className="fantasy-button flex items-center space-x-2">
+              <Button 
+                onClick={() => {
+                  setEditingUsername(!editingUsername);
+                  setNewUsername(userData?.displayName || userBadges.name);
+                }}
+                className="fantasy-button flex items-center space-x-2"
+              >
                 <Edit className="w-4 h-4" />
-                <span>EDIT</span>
+                <span>EDIT USERNAME</span>
               </Button>
               <Button className="bg-medieval-brown-light border-2 border-medieval-gold/50 text-medieval-beige hover:border-medieval-gold flex items-center space-x-2">
                 <Share2 className="w-4 h-4" />
