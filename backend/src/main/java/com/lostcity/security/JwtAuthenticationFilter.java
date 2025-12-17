@@ -36,6 +36,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String jwt = getJwtFromRequest(request);
 
+            logger.info("Processing request: " + request.getRequestURI() + " with JWT: "
+                    + (jwt != null ? "present" : "absent"));
+
             if (StringUtils.hasText(jwt)) {
                 // First, try to verify as Clerk token
                 Optional<User> clerkUser = clerkTokenVerifier.verifyAndGetUser(jwt);
@@ -43,6 +46,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (clerkUser.isPresent()) {
                     // Clerk authentication successful
                     User user = clerkUser.get();
+                    logger.info("Clerk authentication successful for user: " + user.getEmail());
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                             user.getEmail(), // Use email as principal
                             null,
@@ -50,20 +54,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
                 } else {
+                    logger.warn("Clerk authentication failed, trying legacy JWT");
                     // Fall back to legacy JWT authentication
-                    String username = tokenProvider.extractUsername(jwt);
+                    try {
+                        String username = tokenProvider.extractUsername(jwt);
 
-                    if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                        if (tokenProvider.validateToken(jwt, userDetails)) {
-                            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                                    userDetails,
-                                    null,
-                                    userDetails.getAuthorities());
-                            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                            SecurityContextHolder.getContext().setAuthentication(authentication);
+                            if (tokenProvider.validateToken(jwt, userDetails)) {
+                                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                                        userDetails,
+                                        null,
+                                        userDetails.getAuthorities());
+                                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                                SecurityContextHolder.getContext().setAuthentication(authentication);
+                            }
                         }
+                    } catch (Exception legacyAuthEx) {
+                        // Legacy JWT validation failed, token might be Clerk token that wasn't found in
+                        // DB
+                        logger.debug("Legacy JWT authentication failed: " + legacyAuthEx.getMessage());
                     }
                 }
             }

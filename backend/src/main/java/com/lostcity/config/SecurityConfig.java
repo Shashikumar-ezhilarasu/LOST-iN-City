@@ -44,12 +44,17 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
+                        // Public endpoints
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/webhooks/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow CORS preflight
+                        // Public GET endpoints
                         .requestMatchers(HttpMethod.GET, "/api/lost-reports/**", "/api/found-reports/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/lost-reports", "/api/found-reports").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/quests", "/api/quests/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/leaderboard", "/api/leaderboard/**").permitAll()
+                        // API documentation
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        // All other endpoints require authentication
                         .anyRequest().authenticated())
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))

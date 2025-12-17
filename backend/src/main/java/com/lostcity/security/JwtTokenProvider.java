@@ -23,6 +23,9 @@ public class JwtTokenProvider {
     @Value("${jwt.expiration}")
     private Long expiration;
 
+    @Value("${clerk.secret-key:}")
+    private String clerkSecretKey;
+
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
@@ -41,11 +44,30 @@ public class JwtTokenProvider {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        try {
+            // Check if this is a Clerk token (RS256) by inspecting the header
+            String[] parts = token.split("\\.");
+            if (parts.length >= 2) {
+                try {
+                    String header = new String(java.util.Base64.getUrlDecoder().decode(parts[0]));
+                    // If it's an RS256 token (from Clerk), throw exception to skip validation
+                    if (header.contains("RS256") || header.contains("\"alg\":\"RS256\"")) {
+                        throw new RuntimeException("Clerk token - skip HMAC validation");
+                    }
+                } catch (IllegalArgumentException e) {
+                    // Invalid base64, continue with normal parsing
+                }
+            }
+
+            // For HMAC tokens (our own tokens)
+            return Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid JWT token: " + e.getMessage());
+        }
     }
 
     private Boolean isTokenExpired(String token) {
