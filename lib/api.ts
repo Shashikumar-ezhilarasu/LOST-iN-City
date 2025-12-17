@@ -63,20 +63,28 @@ export interface FoundReportRequest {
 export interface Report {
   id: string;
   itemName: string;
+  title: string;
   description: string;
   category: string;
   location: string;
+  locationName: string;
   date: string;
   status: string;
   photoUrls?: string[];
+  images?: string[];
   reporterName?: string;
   reward?: number;
+  rewardAmount?: number;
   createdAt: string;
+  reportedBy?: {
+    id: string;
+    displayName: string;
+    avatarUrl?: string;
+  };
 }
 
 export interface LostReportResponse extends Report {
   lostAt: string;
-  rewardAmount?: number;
 }
 
 export interface FoundReportResponse extends Report {
@@ -201,20 +209,20 @@ export const authAPI = {
 
 // Lost Reports API
 export const lostReportsAPI = {
-  create: (data: LostReportRequest) =>
+  create: (data: LostReportRequest, token?: string | null) =>
     apiFetch<Report>('/lost-reports', {
       method: 'POST',
       body: JSON.stringify(data),
-    }),
+    }, token),
 
   getAll: (page = 1, size = 10, search = '', category = '') => {
     const params = new URLSearchParams({
       page: page.toString(),
-      size: size.toString(),
-      ...(search && { search }),
+      pageSize: size.toString(),
+      ...(search && { q: search }),
       ...(category && { category }),
     });
-    return apiFetch<PageResponse<Report>>(`/lost-reports?${params}`);
+    return apiFetch<PageResponse<LostReportResponse>>(`/lost-reports?${params}`);
   },
 
   getById: (id: string) => apiFetch<Report>(`/lost-reports/${id}`),
@@ -233,20 +241,20 @@ export const lostReportsAPI = {
 
 // Found Reports API
 export const foundReportsAPI = {
-  create: (data: FoundReportRequest) =>
+  create: (data: FoundReportRequest, token?: string | null) =>
     apiFetch<Report>('/found-reports', {
       method: 'POST',
       body: JSON.stringify(data),
-    }),
+    }, token),
 
   getAll: (page = 1, size = 10, search = '', category = '') => {
     const params = new URLSearchParams({
       page: page.toString(),
-      size: size.toString(),
-      ...(search && { search }),
+      pageSize: size.toString(),
+      ...(search && { q: search }),
       ...(category && { category }),
     });
-    return apiFetch<PageResponse<Report>>(`/found-reports?${params}`);
+    return apiFetch<PageResponse<FoundReportResponse>>(`/found-reports?${params}`);
   },
 
   getById: (id: string) => apiFetch<Report>(`/found-reports/${id}`),
@@ -301,21 +309,21 @@ export const questsAPI = {
   getAll: (page = 1, size = 10, statusFilter = 'all') => {
     const params = new URLSearchParams({
       page: page.toString(),
-      size: size.toString(),
+      pageSize: size.toString(),
       statusFilter,
     });
     return apiFetch<PageResponse<any>>(`/quests?${params}`);
   },
 
-  start: (id: string) =>
+  start: (id: string, token?: string | null) =>
     apiFetch<any>(`/quests/${id}/start`, {
       method: 'POST',
-    }),
+    }, token),
 
-  complete: (id: string) =>
+  complete: (id: string, token?: string | null) =>
     apiFetch<any>(`/quests/${id}/complete`, {
       method: 'POST',
-    }),
+    }, token),
 };
 
 // Leaderboard API
@@ -323,7 +331,7 @@ export const leaderboardAPI = {
   getTop: (page = 1, size = 10) => {
     const params = new URLSearchParams({
       page: page.toString(),
-      size: size.toString(),
+      pageSize: size.toString(),
     });
     return apiFetch<PageResponse<User>>(`/leaderboard?${params}`);
   },
