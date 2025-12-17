@@ -28,6 +28,16 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
+    @PutMapping("/profile")
+    public ResponseEntity<ApiResponse<UserResponse>> updateProfile(@RequestBody Map<String, String> updates) {
+        String displayName = updates.get("displayName");
+        if (displayName != null && !displayName.trim().isEmpty()) {
+            UserResponse response = userService.updateDisplayName(displayName.trim());
+            return ResponseEntity.ok(ApiResponse.success(response));
+        }
+        return ResponseEntity.badRequest().body(ApiResponse.error("Display name cannot be empty"));
+    }
+
     @PatchMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> updateCurrentUser(@RequestBody Map<String, String> updates) {
         UserResponse response = userService.updateCurrentUser(

@@ -53,6 +53,14 @@ public class UserService {
     }
 
     @Transactional
+    public UserResponse updateDisplayName(String displayName) {
+        User user = getCurrentUser();
+        user.setDisplayName(displayName);
+        user = userRepository.save(user);
+        return mapToResponse(user);
+    }
+
+    @Transactional
     public void incrementFoundReportsCount(User user) {
         user.setFoundReportsCount(user.getFoundReportsCount() + 1);
         updateScore(user);
