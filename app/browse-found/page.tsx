@@ -1,14 +1,16 @@
 'use client';
 
 import { useState, useEffect } from "react";
+import { useAuth } from '@clerk/nextjs';
 import { Search, MapPin, Calendar, Filter, Eye, MessageSquare } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
-import { foundReportsAPI, FoundReportResponse } from "@/lib/api";
+import { FoundReportResponse } from "@/lib/api";
 
 export default function BrowseFoundPage() {
+  const { getToken, isSignedIn, isLoaded } = useAuth();
   const [foundItems, setFoundItems] = useState<FoundReportResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,18 +18,63 @@ export default function BrowseFoundPage() {
   const [categoryFilter, setCategoryFilter] = useState("");
 
   useEffect(() => {
-    fetchFoundItems();
-  }, [searchQuery, categoryFilter]);
+    if (isLoaded) {
+      fetchFoundItems();
+    }
+  }, [searchQuery, categoryFilter, isLoaded, isSignedIn]);
+
+  // Refetch when page becomes visible (handles navigation back from report page)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isLoaded) {
+        fetchFoundItems();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isLoaded, searchQuery, categoryFilter, isSignedIn]);
 
   const fetchFoundItems = async () => {
     try {
       setLoading(true);
-      const response = await foundReportsAPI.getAll(0, 50, searchQuery, categoryFilter);
-      setFoundItems(response.content);
+      
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      // Add auth token if user is signed in
+      if (isSignedIn) {
+        const token = await getToken();
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+      }
+      
+      const params = new URLSearchParams({
+        page: '1',
+        pageSize: '50',
+        ...(searchQuery && { q: searchQuery }),
+        ...(categoryFilter && { category: categoryFilter }),
+      });
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/found-reports?${params}`, {
+        headers,
+        cache: 'no-store', // Ensure fresh data on every fetch
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      // API returns { data: [...], meta: {...} } where data is the array directly
+      setFoundItems(data.data || []);
       setError(null);
     } catch (err: any) {
       console.error('Error fetching found items:', err);
       setError(err.message || 'Failed to fetch found items');
+      setFoundItems([]);
     } finally {
       setLoading(false);
     }
@@ -118,11 +165,13 @@ export default function BrowseFoundPage() {
             <span>Loading...</span>
           ) : (
             <>
-              <span className="text-medieval-gold font-bold">{foundItems.length}</span> found items available
+              <span className="text-medieval-gold font-bold">{foundItems?.length || 0}</span> found items available
             </>
           )}
         </p>
-        <select className="bg-medieval-brown-light border-2 border-medieval-gold/30 rounded-lg px-3 py-2 text-medieval-beige text-sm focus:border-medieval-gold focus:outline-none">
+        <select 
+          aria-label="Sort found items"
+          className="bg-medieval-brown-light border-2 border-medieval-gold/30 rounded-lg px-3 py-2 text-medieval-beige text-sm focus:border-medieval-gold focus:outline-none">
           <option>Newest First</option>
           <option>Most Responses</option>
           <option>Nearest Location</option>

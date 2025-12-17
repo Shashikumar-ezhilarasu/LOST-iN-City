@@ -1,14 +1,16 @@
 'use client';
 
 import { useState, useEffect } from "react";
+import { useAuth } from '@clerk/nextjs';
 import { Search, MapPin, Calendar, Filter, Eye, MessageSquare, Coins } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
-import { lostReportsAPI, LostReportResponse } from "@/lib/api";
+import { LostReportResponse } from "@/lib/api";
 
 export default function BrowseLostPage() {
+  const { getToken, isSignedIn, isLoaded } = useAuth();
   const [lostItems, setLostItems] = useState<LostReportResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,18 +18,63 @@ export default function BrowseLostPage() {
   const [categoryFilter, setCategoryFilter] = useState("");
 
   useEffect(() => {
-    fetchLostItems();
-  }, [searchQuery, categoryFilter]);
+    if (isLoaded) {
+      fetchLostItems();
+    }
+  }, [searchQuery, categoryFilter, isLoaded, isSignedIn]);
+
+  // Refetch when page becomes visible (handles navigation back from report page)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && isLoaded) {
+        fetchLostItems();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isLoaded, searchQuery, categoryFilter, isSignedIn]);
 
   const fetchLostItems = async () => {
     try {
       setLoading(true);
-      const response = await lostReportsAPI.getAll(0, 50, searchQuery, categoryFilter);
-      setLostItems(response.content);
+      
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      // Add auth token if user is signed in
+      if (isSignedIn) {
+        const token = await getToken();
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+      }
+      
+      const params = new URLSearchParams({
+        page: '1',
+        pageSize: '50',
+        ...(searchQuery && { q: searchQuery }),
+        ...(categoryFilter && { category: categoryFilter }),
+      });
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/lost-reports?${params}`, {
+        headers,
+        cache: 'no-store', // Ensure fresh data on every fetch
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      // API returns { data: [...], meta: {...} } where data is the array directly
+      setLostItems(data.data || []);
       setError(null);
     } catch (err: any) {
       console.error('Error fetching lost items:', err);
       setError(err.message || 'Failed to fetch lost items');
+      setLostItems([]);
     } finally {
       setLoading(false);
     }
@@ -120,11 +167,13 @@ export default function BrowseLostPage() {
             <span>Loading...</span>
           ) : (
             <>
-              <span className="text-medieval-gold font-bold">{lostItems.length}</span> lost items awaiting heroes
+              <span className="text-medieval-gold font-bold">{lostItems?.length || 0}</span> lost items awaiting heroes
             </>
           )}
         </p>
-        <select className="bg-medieval-brown-light border-2 border-medieval-gold/30 rounded-lg px-3 py-2 text-medieval-beige text-sm focus:border-medieval-gold focus:outline-none">
+        <select 
+          aria-label="Sort lost items"
+          className="bg-medieval-brown-light border-2 border-medieval-gold/30 rounded-lg px-3 py-2 text-medieval-beige text-sm focus:border-medieval-gold focus:outline-none">
           <option>Newest First</option>
           <option>Highest Reward</option>
           <option>Most Urgent</option>
