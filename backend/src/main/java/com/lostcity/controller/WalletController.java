@@ -56,4 +56,28 @@ public class WalletController {
                 currencyService.userService.getCurrentUser());
         return ResponseEntity.ok(ApiResponse.success(transaction));
     }
+
+    /**
+     * Add coins to user account (purchase/add funds)
+     * In production, this would integrate with payment gateway
+     */
+    @PostMapping("/add-coins")
+    public ResponseEntity<ApiResponse<Transaction>> addCoins(@RequestBody Map<String, Object> request) {
+        Double amount = ((Number) request.get("amount")).doubleValue();
+        String paymentMethod = (String) request.getOrDefault("payment_method", "manual");
+
+        if (amount == null || amount <= 0) {
+            throw new RuntimeException("Amount must be positive");
+        }
+
+        // In production, verify payment here
+        Transaction transaction = currencyService.creditCoins(
+                currencyService.userService.getCurrentUser(),
+                amount,
+                Transaction.TransactionType.PURCHASE,
+                "Added coins via " + paymentMethod,
+                String.format("{\"payment_method\":\"%s\"}", paymentMethod));
+
+        return ResponseEntity.ok(ApiResponse.success(transaction));
+    }
 }
