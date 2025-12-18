@@ -53,7 +53,7 @@ export default function BrowseFoundPage() {
       
       const params = new URLSearchParams({
         page: '1',
-        pageSize: '50',
+        pageSize: '20',
         ...(searchQuery && { q: searchQuery }),
         ...(categoryFilter && { category: categoryFilter }),
       });
