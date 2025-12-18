@@ -87,7 +87,7 @@ export default function NotificationBell() {
               ) : (
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   {pendingClaims.map((claim) => (
-                    <Link key={claim.id} href={`/lost-item/${claim.lostReport.id}`}>
+                    <Link key={claim.id} href={`/claim-review/${claim.id}`}>
                       <div className="bg-medieval-brown p-3 rounded-lg border-2 border-medieval-gold/30 hover:border-medieval-gold cursor-pointer transition-colors">
                         <div className="flex items-start justify-between mb-1">
                           <p className="text-medieval-gold font-bold text-sm">
@@ -98,13 +98,13 @@ export default function NotificationBell() {
                           </span>
                         </div>
                         <p className="text-medieval-beige/80 text-xs mb-2">
-                          Claimed by: <span className="text-medieval-gold">{claim.claimer.displayName}</span>
+                          Found by: <span className="text-medieval-gold">{claim.claimer.displayName}</span>
                         </p>
                         <p className="text-medieval-beige/70 text-xs line-clamp-2">
-                          {claim.claimerMessage || 'No message'}
+                          "{claim.claimerMessage || 'No message'}"
                         </p>
                         <p className="text-green-400 text-xs mt-2 font-semibold">
-                          Click to review →
+                          👉 Click to review claim →
                         </p>
                       </div>
                     </Link>

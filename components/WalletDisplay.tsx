@@ -19,10 +19,18 @@ export default function WalletDisplay() {
   const [stats, setStats] = useState<WalletStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
+  const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
     if (isSignedIn) {
       fetchWalletStats();
+      
+      // Auto-refresh balance every 10 seconds
+      const interval = setInterval(() => {
+        fetchWalletStats();
+      }, 10000);
+      
+      return () => clearInterval(interval);
     }
   }, [isSignedIn]);
 
@@ -82,6 +90,55 @@ export default function WalletDisplay() {
     }
   };
 
+  const handleResetBalance = async () => {
+    if (!confirm('Reset your balance to 1000 coins if it\'s below 1000?')) {
+      return;
+    }
+
+    setResetting(true);
+    try {
+      const token = await getToken();
+      
+      if (!token) {
+        alert('Authentication error: Please sign out and sign back in.');
+        setResetting(false);
+        return;
+      }
+
+      console.log('Calling reset-to-minimum endpoint...');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/wallet/reset-to-minimum`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('Response status:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Success data:', data);
+        alert(data.data.message + (data.data.added ? ` (+${data.data.added} coins added)` : ''));
+        await fetchWalletStats(); // Refresh balance
+      } else {
+        const errorText = await response.text();
+        console.error('Error response:', response.status, errorText);
+        try {
+          const error = JSON.parse(errorText);
+          alert(`Error: ${error.message || 'Failed to reset balance'}`);
+        } catch {
+          alert(`Error: Failed to reset balance (HTTP ${response.status})`);
+        }
+      }
+    } catch (error) {
+      console.error('Error resetting balance:', error);
+      alert(`Error resetting balance: ${error instanceof Error ? error.message : 'Please try again.'}`);
+    } finally {
+      setResetting(false);
+    }
+  };
+
   if (!isSignedIn) {
     return null;
   }
@@ -116,15 +173,27 @@ export default function WalletDisplay() {
           </div>
           <div className="flex flex-col items-end gap-2">
             <Award className="w-16 h-16 text-yellow-500 opacity-30" />
-            <Button
-              onClick={handleAddCoins}
-              disabled={adding}
-              className="bg-yellow-600 hover:bg-yellow-700 text-white text-sm"
-              size="sm"
-            >
-              <Plus className="w-4 h-4 mr-1" />
-              {adding ? 'Adding...' : 'Add Coins'}
-            </Button>
+            <div className="flex gap-2">
+              {stats.currentBalance < 1000 && (
+                <Button
+                  onClick={handleResetBalance}
+                  disabled={resetting}
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm"
+                  size="sm"
+                >
+                  {resetting ? 'Resetting...' : 'Get 1000 Coins'}
+                </Button>
+              )}
+              <Button
+                onClick={handleAddCoins}
+                disabled={adding}
+                className="bg-yellow-600 hover:bg-yellow-700 text-white text-sm"
+                size="sm"
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                {adding ? 'Adding...' : 'Add Coins'}
+              </Button>
+            </div>
           </div>
         </div>
       </Card>
