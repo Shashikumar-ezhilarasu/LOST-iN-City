@@ -41,9 +41,7 @@ public class FoundReportService {
                 .locationName(request.getLocationName())
                 .foundAt(request.getFoundAt())
                 .reportedBy(currentUser)
-                .foundCondition(request.getFoundCondition() != null
-                        ? FoundReport.Condition.valueOf(request.getFoundCondition().toUpperCase())
-                        : null)
+                .foundCondition(parseCondition(request.getFoundCondition()))
                 .holdingInstructions(request.getHoldingInstructions())
                 .build();
 
@@ -156,12 +154,48 @@ public class FoundReportService {
         return FoundReportResponse.builder()
                 .id(report.getId())
                 .title(report.getTitle())
+                .description(report.getDescription())
                 .category(report.getCategory())
+                .images(report.getImages())
                 .locationName(report.getLocationName())
                 .foundAt(report.getFoundAt())
                 .status(report.getStatus().name().toLowerCase())
                 .tags(report.getTags())
                 .createdAt(report.getCreatedAt())
                 .build();
+    }
+
+    private FoundReport.Condition parseCondition(String condition) {
+        if (condition == null || condition.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            // Try to match common variants
+            String upperCondition = condition.trim().toUpperCase();
+            switch (upperCondition) {
+                case "EXCELLENT":
+                case "LIKE NEW":
+                case "MINT":
+                    return FoundReport.Condition.NEW;
+                case "GOOD":
+                case "FINE":
+                case "OK":
+                    return FoundReport.Condition.GOOD;
+                case "WORN":
+                case "USED":
+                case "FAIR":
+                    return FoundReport.Condition.WORN;
+                case "DAMAGED":
+                case "POOR":
+                case "BROKEN":
+                    return FoundReport.Condition.DAMAGED;
+                default:
+                    // Try direct enum match
+                    return FoundReport.Condition.valueOf(upperCondition);
+            }
+        } catch (IllegalArgumentException e) {
+            // If parsing fails, default to GOOD
+            return FoundReport.Condition.GOOD;
+        }
     }
 }

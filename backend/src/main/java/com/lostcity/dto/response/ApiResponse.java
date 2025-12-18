@@ -39,6 +39,15 @@ public class ApiResponse<T> {
                 .build();
     }
 
+    public static <T> ApiResponse<T> error(String message) {
+        ErrorDetail error = ErrorDetail.builder()
+                .message(message)
+                .build();
+        return ApiResponse.<T>builder()
+                .errors(List.of(error))
+                .build();
+    }
+
     @Data
     @Builder
     @NoArgsConstructor
