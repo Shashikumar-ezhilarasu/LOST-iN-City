@@ -230,6 +230,26 @@ public class CurrencyService {
                 .build();
     }
 
+    /**
+     * Update all users in database to have minimum 1000 coins
+     * This is for initial database setup/migration
+     */
+    @Transactional
+    public long updateAllUsersToMinimumBalance() {
+        List<User> allUsers = userRepository.findAll();
+        long updatedCount = 0;
+
+        for (User user : allUsers) {
+            if (user.getCoins() < 1000.0) {
+                user.setCoins(1000.0);
+                userRepository.save(user);
+                updatedCount++;
+            }
+        }
+
+        return updatedCount;
+    }
+
     @lombok.Data
     @lombok.Builder
     public static class WalletStats {

@@ -37,25 +37,23 @@ public class RewardCalculationService {
     };
 
     /**
-     * Calculate dynamic reward for finding and returning a lost item
+     * Calculate reward for finding and returning a lost item
+     * Uses EXACTLY what the owner sets - no dynamic calculation
      * 
      * @param lostReport The lost report
-     * @return Calculated reward amount
+     * @return Owner's set reward amount
      */
     public Double calculateReward(LostReport lostReport) {
-        // If owner has set a specific reward, use that as minimum
+        // Use EXACTLY what the owner sets - no modifications
         Double ownerReward = lostReport.getRewardAmount();
 
-        // Calculate dynamic reward
-        Double dynamicReward = calculateDynamicReward(lostReport);
-
-        // Use the higher of owner's reward or dynamic calculation
+        // If owner didn't set a reward, use minimum default
         Double finalReward = (ownerReward != null && ownerReward > 0)
-                ? Math.max(ownerReward, dynamicReward)
-                : dynamicReward;
+                ? ownerReward
+                : 50.0; // Minimum default reward
 
-        log.info("Calculated reward for lost report {}: Owner={}, Dynamic={}, Final={}",
-                lostReport.getId(), ownerReward, dynamicReward, finalReward);
+        log.info("Using owner's set reward for lost report {}: Amount={}",
+                lostReport.getId(), finalReward);
 
         return finalReward;
     }
