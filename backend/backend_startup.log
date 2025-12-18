@@ -1,0 +1,76 @@
+Using Java: java version "21.0.9" 2025-10-21 LTS
+Starting LostCity Backend...
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------< com.lostcity:lost-city-backend >-------------------
+[INFO] Building LostCity Backend 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.2.1:run (default-cli) > test-compile @ lost-city-backend >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ lost-city-backend ---
+[INFO] Copying 1 resource from src/main/resources to target/classes
+[INFO] Copying 0 resource from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ lost-city-backend ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ lost-city-backend ---
+[INFO] skip non existing resourceDirectory /Users/shashikumarezhil/Documents/SECTOR-17 /lostCity/backend/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ lost-city-backend ---
+[INFO] No sources to compile
+[INFO] 
+[INFO] <<< spring-boot:3.2.1:run (default-cli) < test-compile @ lost-city-backend <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.1:run (default-cli) @ lost-city-backend ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.1)
+
+2025-12-19T01:22:15.813+05:30  INFO 2574 --- [lost-city-backend] [           main] com.lostcity.LostCityApplication         : Starting LostCityApplication using Java 21.0.9 with PID 2574 (/Users/shashikumarezhil/Documents/SECTOR-17 /lostCity/backend/target/classes started by shashikumarezhil in /Users/shashikumarezhil/Documents/SECTOR-17 /lostCity/backend)
+2025-12-19T01:22:15.814+05:30  INFO 2574 --- [lost-city-backend] [           main] com.lostcity.LostCityApplication         : No active profile set, falling back to 1 default profile: "default"
+2025-12-19T01:22:16.153+05:30  INFO 2574 --- [lost-city-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2025-12-19T01:22:16.179+05:30  INFO 2574 --- [lost-city-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 24 ms. Found 9 MongoDB repository interfaces.
+2025-12-19T01:22:16.392+05:30  INFO 2574 --- [lost-city-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2025-12-19T01:22:16.400+05:30  INFO 2574 --- [lost-city-backend] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-12-19T01:22:16.400+05:30  INFO 2574 --- [lost-city-backend] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.17]
+2025-12-19T01:22:16.424+05:30  INFO 2574 --- [lost-city-backend] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-12-19T01:22:16.424+05:30  INFO 2574 --- [lost-city-backend] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 596 ms
+2025-12-19T01:22:16.529+05:30  INFO 2574 --- [lost-city-backend] [           main] org.mongodb.driver.client                : MongoClient with metadata {"application": {"name": "LostCity"}, "driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "4.11.1"}, "os": {"type": "Darwin", "name": "Mac OS X", "architecture": "aarch64", "version": "15.5"}, "platform": "Java/Oracle Corporation/21.0.9+7-LTS-338"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=majority, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=MongoCredential{mechanism=null, userName='shashikumarezhil_db_user', source='admin', password=<hidden>, mechanismProperties=<hidden>}, transportSettings=null, streamFactoryFactory=null, commandListeners=[], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@2ad99cf3, com.mongodb.Jep395RecordCodecProvider@6f31df32, com.mongodb.KotlinCodecProvider@7c90b7b7]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[127.0.0.1:27017], srvHost=lostcity.1g3rszx.mongodb.net, srvServiceName=mongodb, mode=MULTIPLE, requiredClusterType=REPLICA_SET, requiredReplicaSetName='atlas-fv56o3-shard-0', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=true, invalidHostNameAllowed=false, context=null}, applicationName='LostCity', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null}
+2025-12-19T01:22:16.612+05:30  INFO 2574 --- [lost-city-backend] [szx.mongodb.net] org.mongodb.driver.cluster               : Adding discovered server ac-awtjeot-shard-00-02.1g3rszx.mongodb.net:27017 to client view of cluster
+2025-12-19T01:22:16.629+05:30  INFO 2574 --- [lost-city-backend] [szx.mongodb.net] org.mongodb.driver.cluster               : Adding discovered server ac-awtjeot-shard-00-00.1g3rszx.mongodb.net:27017 to client view of cluster
+2025-12-19T01:22:16.630+05:30  INFO 2574 --- [lost-city-backend] [szx.mongodb.net] org.mongodb.driver.cluster               : Adding discovered server ac-awtjeot-shard-00-01.1g3rszx.mongodb.net:27017 to client view of cluster
+2025-12-19T01:22:16.987+05:30  INFO 2574 --- [lost-city-backend] [ngodb.net:27017] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=ac-awtjeot-shard-00-00.1g3rszx.mongodb.net:27017, type=REPLICA_SET_SECONDARY, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=25, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=177900083, setName='atlas-fv56o3-shard-0', canonicalAddress=ac-awtjeot-shard-00-00.1g3rszx.mongodb.net:27017, hosts=[ac-awtjeot-shard-00-00.1g3rszx.mongodb.net:27017, ac-awtjeot-shard-00-02.1g3rszx.mongodb.net:27017, ac-awtjeot-shard-00-01.1g3rszx.mongodb.net:27017], passives=[], arbiters=[], primary='ac-awtjeot-shard-00-02.1g3rszx.mongodb.net:27017', tagSet=TagSet{[Tag{name='availabilityZone', value='aps1-az1'}, Tag{name='diskState', value='READY'}, Tag{name='nodeType', value='ELECTABLE'}, Tag{name='provider', value='AWS'}, Tag{name='region', value='AP_SOUTH_1'}, Tag{name='workloadType', value='OPERATIONAL'}]}, electionId=null, setVersion=187, topologyVersion=TopologyVersion{processId=6942c5a1688e5a69d29c28a8, counter=4}, lastWriteDate=Fri Dec 19 01:22:16 IST 2025, lastUpdateTimeNanos=57764680667708}
+2025-12-19T01:22:16.987+05:30  INFO 2574 --- [lost-city-backend] [ngodb.net:27017] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=ac-awtjeot-shard-00-02.1g3rszx.mongodb.net:27017, type=REPLICA_SET_PRIMARY, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=25, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=181009458, setName='atlas-fv56o3-shard-0', canonicalAddress=ac-awtjeot-shard-00-02.1g3rszx.mongodb.net:27017, hosts=[ac-awtjeot-shard-00-00.1g3rszx.mongodb.net:27017, ac-awtjeot-shard-00-02.1g3rszx.mongodb.net:27017, ac-awtjeot-shard-00-01.1g3rszx.mongodb.net:27017], passives=[], arbiters=[], primary='ac-awtjeot-shard-00-02.1g3rszx.mongodb.net:27017', tagSet=TagSet{[Tag{name='availabilityZone', value='aps1-az2'}, Tag{name='diskState', value='READY'}, Tag{name='nodeType', value='ELECTABLE'}, Tag{name='provider', value='AWS'}, Tag{name='region', value='AP_SOUTH_1'}, Tag{name='workloadType', value='OPERATIONAL'}]}, electionId=7fffffff00000000000001c4, setVersion=187, topologyVersion=TopologyVersion{processId=6942c5f5e734151a719f1afb, counter=6}, lastWriteDate=Fri Dec 19 01:22:16 IST 2025, lastUpdateTimeNanos=57764680169125}
+2025-12-19T01:22:16.989+05:30  INFO 2574 --- [lost-city-backend] [ngodb.net:27017] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=ac-awtjeot-shard-00-01.1g3rszx.mongodb.net:27017, type=REPLICA_SET_SECONDARY, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=25, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=176885458, setName='atlas-fv56o3-shard-0', canonicalAddress=ac-awtjeot-shard-00-01.1g3rszx.mongodb.net:27017, hosts=[ac-awtjeot-shard-00-00.1g3rszx.mongodb.net:27017, ac-awtjeot-shard-00-02.1g3rszx.mongodb.net:27017, ac-awtjeot-shard-00-01.1g3rszx.mongodb.net:27017], passives=[], arbiters=[], primary='ac-awtjeot-shard-00-02.1g3rszx.mongodb.net:27017', tagSet=TagSet{[Tag{name='availabilityZone', value='aps1-az3'}, Tag{name='diskState', value='READY'}, Tag{name='nodeType', value='ELECTABLE'}, Tag{name='provider', value='AWS'}, Tag{name='region', value='AP_SOUTH_1'}, Tag{name='workloadType', value='OPERATIONAL'}]}, electionId=null, setVersion=187, topologyVersion=TopologyVersion{processId=6942c6438b133630c5c1ee79, counter=3}, lastWriteDate=Fri Dec 19 01:22:16 IST 2025, lastUpdateTimeNanos=57764682565625}
+2025-12-19T01:22:16.989+05:30  INFO 2574 --- [lost-city-backend] [ngodb.net:27017] org.mongodb.driver.cluster               : Discovered replica set primary ac-awtjeot-shard-00-02.1g3rszx.mongodb.net:27017 with max election id 7fffffff00000000000001c4 and max set version 187
+2025-12-19T01:22:17.086+05:30  INFO 2574 --- [lost-city-backend] [           main] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@7e2c6fd6, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@7ff6804a, org.springframework.security.web.context.SecurityContextHolderFilter@54defd69, org.springframework.security.web.header.HeaderWriterFilter@6b8bdcc6, org.springframework.web.filter.CorsFilter@12aa519b, org.springframework.security.web.authentication.logout.LogoutFilter@1de73d37, com.lostcity.security.JwtAuthenticationFilter@795b66d, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@377dbc50, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@531ec2ca, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@7c5c20ed, org.springframework.security.web.session.SessionManagementFilter@4fa91d5b, org.springframework.security.web.access.ExceptionTranslationFilter@29c59b6e, org.springframework.security.web.access.intercept.AuthorizationFilter@2404abe2]
+2025-12-19T01:22:17.221+05:30  INFO 2574 --- [lost-city-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path ''
+2025-12-19T01:22:17.225+05:30  INFO 2574 --- [lost-city-backend] [           main] com.lostcity.LostCityApplication         : Started LostCityApplication in 1.57 seconds (process running for 1.721)
+2025-12-19T01:22:46.068+05:30  INFO 2574 --- [lost-city-backend] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-12-19T01:22:46.069+05:30  INFO 2574 --- [lost-city-backend] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-12-19T01:22:46.072+05:30  INFO 2574 --- [lost-city-backend] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 3 ms
+2025-12-19T01:22:46.084+05:30  INFO 2574 --- [lost-city-backend] [nio-8080-exec-1] c.l.security.JwtAuthenticationFilter     : Processing request: /api/found-reports with JWT: absent
+2025-12-19T01:24:39.863+05:30  INFO 2574 --- [lost-city-backend] [nio-8080-exec-2] c.l.security.JwtAuthenticationFilter     : Processing request: /api/found-reports with JWT: absent
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  07:25 min
+[INFO] Finished at: 2025-12-19T01:29:40+05:30
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.2.1:run (default-cli) on project lost-city-backend: Process terminated with exit code: 137 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException
