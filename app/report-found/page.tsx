@@ -198,11 +198,9 @@ export default function ReportFoundPage() {
             <label className="text-medieval-gold font-semibold flex items-center space-x-2">
               <MapPin className="w-4 h-4" />
               <span>Location Found</span>
-              <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              required
               value={formData.locationName}
               onChange={(e) => setFormData({ ...formData, locationName: e.target.value })}
               placeholder="E.g., Central Park near fountain, Metro Station exit 3"

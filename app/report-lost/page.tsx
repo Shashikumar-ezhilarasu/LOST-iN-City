@@ -216,11 +216,9 @@ export default function ReportLostPage() {
               <label className="text-medieval-gold font-semibold flex items-center space-x-2">
                 <MapPin className="w-4 h-4" />
                 <span>Last Seen Location</span>
-                <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                required
                 value={formData.locationName}
                 onChange={(e) => setFormData({ ...formData, locationName: e.target.value })}
                 placeholder="E.g., Central Plaza, Near Dragon Fountain"
