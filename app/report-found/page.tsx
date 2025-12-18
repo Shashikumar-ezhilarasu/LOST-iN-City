@@ -98,12 +98,13 @@ export default function ReportFoundPage() {
       // Success! Show message and redirect to the browse page
       alert('✅ Found item report created successfully! Redirecting...');
       
-      // Small delay to ensure backend has processed the request
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Navigate and force refresh
-      await router.push('/browse-found');
-      router.refresh();
+      // Redirect to the created item's detail page
+      if (response.data?.id) {
+        router.push(`/found-item/${response.data.id}`);
+      } else {
+        // Fallback to browse page
+        router.push('/browse-found');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to create report.');
       console.error('Error creating found report:', err);

@@ -97,12 +97,13 @@ export default function ReportLostPage() {
       // Success! Show message and redirect to the browse page
       alert('✅ Lost item report created successfully! Redirecting...');
       
-      // Small delay to ensure backend has processed the request
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Navigate and force refresh
-      await router.push('/browse-lost');
-      router.refresh();
+      // Redirect to the created item's detail page
+      if (response.data?.id) {
+        router.push(`/lost-item/${response.data.id}`);
+      } else {
+        // Fallback to browse page
+        router.push('/browse-lost');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to create report. Please try again.');
       console.error('Error creating lost report:', err);

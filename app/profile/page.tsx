@@ -56,6 +56,13 @@ export default function ProfilePage() {
     if (isSignedIn) {
       fetchUserData();
       fetchUserReports();
+      
+      // Auto-refresh user data every 15 seconds
+      const interval = setInterval(() => {
+        fetchUserData();
+      }, 15000);
+      
+      return () => clearInterval(interval);
     }
   }, [isSignedIn]);
 
@@ -227,6 +234,32 @@ export default function ProfilePage() {
   const nextLevelXP = calculateNextLevelXP(level);
   const currentXP = (userData?.lifetimeEarnings || 0) % 1000;
 
+  // Badge unlocking logic based on actual user achievements
+  const checkBadgeUnlocked = (badgeId: string): boolean => {
+    const coins = userData?.coins || 0;
+    const earned = userData?.lifetimeEarnings || 0;
+    const spent = userData?.lifetimeSpent || 0;
+    const itemsReturned = stats.itemsReturned;
+    const itemsFound = foundReports.length;
+    const itemsReported = lostReports.length;
+    
+    switch (badgeId) {
+      case 'first-find': return itemsFound >= 1;
+      case 'treasure-hunter': return itemsFound >= 5;
+      case 'master-finder': return itemsFound >= 20;
+      case 'generous-soul': return spent >= 100;
+      case 'coin-collector': return coins >= 1000;
+      case 'wealthy': return coins >= 5000;
+      case 'helper': return itemsReturned >= 3;
+      case 'community-hero': return itemsReturned >= 10;
+      case 'first-report': return itemsReported >= 1;
+      case 'active-seeker': return itemsReported >= 5;
+      case 'newbie': return true; // Everyone gets this
+      case 'veteran': return earned >= 500;
+      default: return false;
+    }
+  };
+
   const userBadges = {
     name: user?.fullName || user?.firstName || userData?.displayName || "User",
     username: `@${user?.username || user?.emailAddresses[0]?.emailAddress.split('@')[0] || 'user'}`,
@@ -251,19 +284,22 @@ export default function ProfilePage() {
     recentActivity: [], // Can be populated from transaction history
   };
 
-  // Badge definitions with dynamic earned status
+  // Badge definitions with dynamic earned status based on REAL achievements
   const availableBadges = [
-    { id: 1, name: "First Find", description: "Found your first item", icon: "🔍", earned: foundReports.length >= 1, rarity: "common" },
-    { id: 2, name: "Good Samaritan", description: "Helped 5 people find their items", icon: "❤️", earned: stats.itemsReturned >= 5, rarity: "rare" },
-    { id: 3, name: "Quick Responder", description: "Respond within 1 hour", icon: "⚡", earned: false, rarity: "common" },
-    { id: 4, name: "Treasure Hunter", description: "Found items worth 5000+ coins", icon: "💰", earned: (userData?.lifetimeEarnings || 0) >= 5000, rarity: "rare" },
-    { id: 5, name: "Community Hero", description: "Helped 10 people", icon: "🏆", earned: stats.itemsReturned >= 10, rarity: "epic" },
-    { id: 6, name: "Legend", description: "Reached Level 10", icon: "👑", earned: level >= 10, rarity: "legendary" },
-    { id: 7, name: "Master Finder", description: "Found 50 items", icon: "⭐", earned: foundReports.length >= 50, rarity: "epic" },
-    { id: 8, name: "Trust Builder", description: "100% success rate over 20 items", icon: "🛡️", earned: stats.successRate === 100 && stats.itemsReturned >= 20, rarity: "legendary" },
-    { id: 9, name: "First Report", description: "Reported your first lost item", icon: "📝", earned: lostReports.length >= 1, rarity: "common" },
-    { id: 10, name: "Millionaire", description: "Earned 10,000 coins", icon: "💎", earned: (userData?.lifetimeEarnings || 0) >= 10000, rarity: "legendary" },
+    { id: 1, name: "First Find", description: "Found your first item", icon: "🔍", earned: checkBadgeUnlocked('first-find'), rarity: "common" },
+    { id: 2, name: "Treasure Hunter", description: "Found 5 items", icon: "💎", earned: checkBadgeUnlocked('treasure-hunter'), rarity: "rare" },
+    { id: 3, name: "Master Finder", description: "Found 20 items", icon: "👑", earned: checkBadgeUnlocked('master-finder'), rarity: "epic" },
+    { id: 4, name: "Generous Soul", description: "Spent 100+ coins in rewards", icon: "💰", earned: checkBadgeUnlocked('generous-soul'), rarity: "rare" },
+    { id: 5, name: "Coin Collector", description: "Accumulated 1000+ coins", icon: "🪙", earned: checkBadgeUnlocked('coin-collector'), rarity: "rare" },
+    { id: 6, name: "Wealthy", description: "Accumulated 5000+ coins", icon: "💸", earned: checkBadgeUnlocked('wealthy'), rarity: "epic" },
+    { id: 7, name: "Helper", description: "Returned 3 items to owners", icon: "🤝", earned: checkBadgeUnlocked('helper'), rarity: "rare" },
+    { id: 8, name: "Community Hero", description: "Returned 10 items to owners", icon: "🦸", earned: checkBadgeUnlocked('community-hero'), rarity: "legendary" },
+    { id: 9, name: "First Report", description: "Reported first lost item", icon: "📝", earned: checkBadgeUnlocked('first-report'), rarity: "common" },
+    { id: 10, name: "Active Seeker", description: "Reported 5+ lost items", icon: "🔦", earned: checkBadgeUnlocked('active-seeker'), rarity: "rare" },
+    { id: 11, name: "Newbie", description: "Joined the community", icon: "🌟", earned: checkBadgeUnlocked('newbie'), rarity: "common" },
+    { id: 12, name: "Veteran", description: "Earned 500+ coins", icon: "⚔️", earned: checkBadgeUnlocked('veteran'), rarity: "epic" },
   ];
+
 
   const getRarityColor = (rarity: string) => {
     switch (rarity) {

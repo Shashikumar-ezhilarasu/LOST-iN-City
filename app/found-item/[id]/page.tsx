@@ -245,7 +245,6 @@ export default function ItemDetailPage() {
                 <p className="text-medieval-beige/80 text-sm mb-2">This is a Found Item</p>
                 <p className="text-medieval-gold font-bold">Contact the finder to claim</p>
               </div>
-              </div>
 
               <Button className="fantasy-button w-full py-6 text-lg">
                 <MessageSquare className="w-5 h-5 mr-2" />

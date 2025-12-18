@@ -242,6 +242,27 @@ export default function LostItemDetailPage() {
         </Button>
       </Link>
 
+      {/* Notification Banner for Pending Claims (Owner Only) */}
+      {isOwner && pendingClaims.length > 0 && (
+        <Card className="fantasy-card bg-yellow-900/20 border-2 border-yellow-600">
+          <CardContent className="p-4">
+            <div className="flex items-start space-x-3">
+              <div className="w-10 h-10 rounded-full bg-yellow-600 flex items-center justify-center flex-shrink-0">
+                <MessageSquare className="w-5 h-5 text-medieval-brown" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-yellow-400 font-bold text-lg mb-1">
+                  {pendingClaims.length} {pendingClaims.length === 1 ? 'Person Has' : 'People Have'} Claimed Your Item!
+                </h3>
+                <p className="text-medieval-beige/80 text-sm">
+                  Review {pendingClaims.length === 1 ? 'their message' : 'their messages'} below and verify the details to approve or reject {pendingClaims.length === 1 ? 'the claim' : 'each claim'}.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Item Header */}
       <Card className="fantasy-card">
         <CardContent className="p-6">
@@ -365,62 +386,147 @@ export default function LostItemDetailPage() {
                 {approvedClaim && (
                   <div className="bg-blue-900/20 border-2 border-blue-600 rounded-lg p-4 mb-4">
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-blue-400 font-bold">✅ Approved Claim</h3>
+                      <h3 className="text-blue-400 font-bold flex items-center space-x-2">
+                        <CheckCircle className="w-5 h-5" />
+                        <span>Approved Claim</span>
+                      </h3>
                       <span className="text-xs text-blue-400/70">
                         Approved {new Date(approvedClaim.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                     
-                    <div className="flex items-start space-x-3 mb-3">
-                      <Avatar className="w-10 h-10">
+                    <div className="flex items-start space-x-3 mb-4">
+                      <Avatar className="w-12 h-12 border-2 border-blue-400">
+                        <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${approvedClaim.claimer.displayName}`} />
                         <AvatarFallback>{approvedClaim.claimer.displayName[0]}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
-                        <p className="text-medieval-gold font-semibold">{approvedClaim.claimer.displayName}</p>
-                        <p className="text-medieval-beige/80 text-sm">{approvedClaim.claimerMessage}</p>
+                        <p className="text-medieval-gold font-bold text-lg">{approvedClaim.claimer.displayName}</p>
+                        <p className="text-medieval-beige/60 text-xs mb-2">{approvedClaim.claimer.email}</p>
+                        
+                        {/* Message Section */}
+                        <div className="bg-medieval-brown-light rounded-lg p-4 mt-3 border-l-4 border-blue-400">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <MessageSquare className="w-4 h-4 text-blue-400" />
+                            <span className="text-xs text-blue-400 font-semibold uppercase">Message from Finder</span>
+                          </div>
+                          <p className="text-medieval-beige text-sm leading-relaxed whitespace-pre-wrap">
+                            {approvedClaim.claimerMessage || 'No message provided'}
+                          </p>
+                        </div>
+
+                        {/* Found Report Details */}
+                        {approvedClaim.foundReport && (
+                          <div className="bg-medieval-brown-light rounded-lg p-4 mt-3 border-l-4 border-medieval-gold">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <Eye className="w-4 h-4 text-medieval-gold" />
+                              <span className="text-xs text-medieval-gold font-semibold uppercase">Found Report Details</span>
+                            </div>
+                            <p className="text-medieval-gold font-semibold mb-1">{approvedClaim.foundReport.itemName}</p>
+                            <p className="text-medieval-beige/80 text-sm">{approvedClaim.foundReport.description}</p>
+                            {approvedClaim.foundReport.images && approvedClaim.foundReport.images.length > 0 && (
+                              <div className="mt-3 grid grid-cols-3 gap-2">
+                                {approvedClaim.foundReport.images.map((img, idx) => (
+                                  <div key={idx} className="relative h-20 rounded overflow-hidden border-2 border-medieval-gold/30">
+                                    <Image src={img} alt={`Found item ${idx + 1}`} fill className="object-cover" unoptimized />
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    {!approvedClaim.rewardPaid && (
-                      <Button
-                        onClick={() => handleCompleteAndPayReward(approvedClaim.id)}
-                        disabled={processingClaim === approvedClaim.id}
-                        className="w-full fantasy-button mt-3"
-                      >
-                        {processingClaim === approvedClaim.id ? 'Processing...' : '💰 Complete & Release Reward'}
-                      </Button>
+                    {!approvedClaim.rewardPaid ? (
+                      <div className="bg-medieval-gold/10 rounded-lg p-4 border-2 border-medieval-gold">
+                        <div className="flex items-start space-x-3 mb-3">
+                          <AlertCircle className="w-5 h-5 text-medieval-gold flex-shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <p className="text-medieval-gold font-bold mb-1">Ready to Release Reward?</p>
+                            <p className="text-medieval-beige/80 text-xs mb-3">
+                              After verifying the message and meeting with the finder to collect your item, 
+                              click below to release the <span className="text-medieval-gold font-bold">{approvedClaim.rewardAmount} coins</span> reward.
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => handleCompleteAndPayReward(approvedClaim.id)}
+                          disabled={processingClaim === approvedClaim.id}
+                          className="w-full fantasy-button bg-medieval-gold text-medieval-brown hover:bg-medieval-gold/90"
+                        >
+                          <Coins className="w-5 h-5 mr-2" />
+                          {processingClaim === approvedClaim.id ? 'Processing...' : 'VERIFY & RELEASE REWARD'}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="bg-green-900/20 border-2 border-green-600 rounded-lg p-4">
+                        <div className="flex items-center space-x-2 text-green-400">
+                          <CheckCircle className="w-5 h-5" />
+                          <span className="font-bold">Reward Released! Transaction Complete ✨</span>
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}
 
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {pendingClaims.map((claim) => (
-                    <div key={claim.id} className="bg-medieval-brown p-4 rounded-lg border-2 border-medieval-gold/30">
-                      <div className="flex items-start justify-between mb-3">
+                    <div key={claim.id} className="bg-medieval-brown p-5 rounded-lg border-2 border-yellow-600/50 shadow-lg">
+                      <div className="flex items-start justify-between mb-4">
                         <div className="flex items-start space-x-3">
-                          <Avatar className="w-10 h-10">
+                          <Avatar className="w-12 h-12 border-2 border-yellow-600">
+                            <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${claim.claimer.displayName}`} />
                             <AvatarFallback>{claim.claimer.displayName[0]}</AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="text-medieval-gold font-semibold">{claim.claimer.displayName}</p>
+                            <p className="text-medieval-gold font-bold text-lg">{claim.claimer.displayName}</p>
+                            <p className="text-medieval-beige/60 text-xs mb-1">{claim.claimer.email}</p>
                             <p className="text-medieval-beige/60 text-xs">
-                              {new Date(claim.createdAt).toLocaleDateString()}
+                              Submitted {new Date(claim.createdAt).toLocaleDateString('en-US', { 
+                                month: 'short', 
+                                day: 'numeric', 
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
                             </p>
                           </div>
                         </div>
-                        <span className="text-xs bg-yellow-900/30 border border-yellow-600 text-yellow-400 px-2 py-1 rounded">
-                          PENDING
+                        <span className="text-xs bg-yellow-900/30 border-2 border-yellow-600 text-yellow-400 px-3 py-1 rounded-full font-bold">
+                          PENDING REVIEW
                         </span>
                       </div>
 
-                      <p className="text-medieval-beige/80 text-sm mb-3">
-                        {claim.claimerMessage || 'No message provided'}
-                      </p>
+                      {/* Claim Message - Highlighted */}
+                      <div className="bg-medieval-brown-light rounded-lg p-4 mb-4 border-l-4 border-yellow-600">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <MessageSquare className="w-5 h-5 text-yellow-600" />
+                          <span className="text-xs text-yellow-600 font-bold uppercase tracking-wide">Message from Finder</span>
+                        </div>
+                        <p className="text-medieval-beige text-sm leading-relaxed whitespace-pre-wrap">
+                          {claim.claimerMessage || 'No message provided'}
+                        </p>
+                      </div>
 
+                      {/* Found Report Details */}
                       {claim.foundReport && (
-                        <div className="bg-medieval-brown-light p-3 rounded mb-3">
-                          <p className="text-xs text-medieval-gold font-semibold mb-1">Found Report Attached:</p>
-                          <p className="text-xs text-medieval-beige/80">{claim.foundReport.description}</p>
+                        <div className="bg-medieval-brown-light rounded-lg p-4 mb-4 border-l-4 border-medieval-gold">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <Eye className="w-4 h-4 text-medieval-gold" />
+                            <span className="text-xs text-medieval-gold font-bold uppercase tracking-wide">Found Report Attached</span>
+                          </div>
+                          <p className="text-medieval-gold font-semibold mb-1">{claim.foundReport.itemName}</p>
+                          <p className="text-medieval-beige/80 text-sm mb-2">{claim.foundReport.description}</p>
+                          {claim.foundReport.images && claim.foundReport.images.length > 0 && (
+                            <div className="grid grid-cols-3 gap-2 mt-3">
+                              {claim.foundReport.images.map((img, idx) => (
+                                <div key={idx} className="relative h-24 rounded overflow-hidden border-2 border-medieval-gold/30">
+                                  <Image src={img} alt={`Found item ${idx + 1}`} fill className="object-cover" unoptimized />
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
 
