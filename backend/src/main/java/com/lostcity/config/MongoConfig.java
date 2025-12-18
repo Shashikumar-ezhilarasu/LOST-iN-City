@@ -27,10 +27,11 @@ public class MongoConfig {
     }
 
     @Bean
-    public MongoCustomConversions customConversions() {
+    public MongoCustomConversions customConversions(FoundReportConditionConverter conditionConverter) {
         List<Converter<?, ?>> converters = new ArrayList<>();
         converters.add(new OffsetDateTimeReadConverter());
         converters.add(new OffsetDateTimeWriteConverter());
+        converters.add(conditionConverter); // Add custom condition converter
         return new MongoCustomConversions(converters);
     }
 
