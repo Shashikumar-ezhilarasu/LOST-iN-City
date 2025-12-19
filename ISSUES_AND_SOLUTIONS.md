@@ -7,17 +7,21 @@
 ## Issue #1: Backend Server Startup and Management
 
 ### Problem
+
 - Backend server needed to be started manually each time
 - No easy way to restart server after code changes
 - PID management for stopping existing processes was manual
 
 ### Approaches Tried
+
 1. **Manual Java commands** - Too verbose and error-prone
 2. **Simple shell script** - Lacked proper error handling and status checks
 3. **Advanced restart script** - Final solution
 
 ### Best Fix Applied
+
 Created `restart-backend.sh` with:
+
 - Automatic PID-based process termination
 - Maven build and background execution
 - Startup health checks with 15-second wait time
@@ -25,6 +29,7 @@ Created `restart-backend.sh` with:
 - User-friendly status messages
 
 **File:** `restart-backend.sh`
+
 ```bash
 #!/bin/bash
 # Stops existing process, builds, and starts backend
@@ -32,6 +37,7 @@ Created `restart-backend.sh` with:
 ```
 
 **Commands:**
+
 ```bash
 chmod +x restart-backend.sh
 ./restart-backend.sh
@@ -44,34 +50,40 @@ chmod +x restart-backend.sh
 ## Issue #2: Authentication System Integration
 
 ### Problem
+
 - Needed dual authentication support (JWT + Clerk)
 - Security filter chain causing conflicts
 - User synchronization between Clerk and MongoDB
 
 ### Approaches Tried
+
 1. **JWT-only authentication** - Worked but wanted external auth provider
 2. **Clerk-only authentication** - Needed local user data storage
 3. **Hybrid approach** - Final solution
 
 ### Best Fix Applied
+
 Implemented dual authentication system:
 
 **Components:**
+
 - `JwtTokenProvider.java` - JWT token generation and validation
 - `ClerkTokenVerifier.java` - Clerk token verification
 - `JwtAuthenticationFilter.java` - Unified filter for both auth types
 - `WebhookController.java` - Clerk user sync webhooks
 
 **Security Flow:**
+
 ```
 Request → Extract Token → Verify (JWT/Clerk) → Load User → Set Auth Context
 ```
 
 **Configuration:**
+
 ```yaml
 jwt:
   secret: ${JWT_SECRET}
-  expiration: 86400000  # 24 hours
+  expiration: 86400000 # 24 hours
 
 clerk:
   publishable-key: ${CLERK_PUBLISHABLE_KEY}
@@ -84,19 +96,23 @@ clerk:
 ## Issue #3: MongoDB Connection and Date Handling
 
 ### Problem
+
 - OffsetDateTime not natively supported by MongoDB
 - Date conversion issues causing serialization errors
 - Audit timestamps not populating automatically
 
 ### Approaches Tried
+
 1. **LocalDateTime** - Lost timezone information
 2. **Date objects** - Incompatible with modern Java date/time API
 3. **Custom converters** - Final solution
 
 ### Best Fix Applied
+
 Created custom MongoDB converters in `MongoConfig.java`:
 
 **Converters:**
+
 ```java
 // Read: MongoDB Date → Java OffsetDateTime
 class OffsetDateTimeReadConverter implements Converter<Date, OffsetDateTime> {
@@ -114,6 +130,7 @@ class OffsetDateTimeWriteConverter implements Converter<OffsetDateTime, Date> {
 ```
 
 **Configuration:**
+
 ```java
 @Configuration
 @EnableMongoAuditing(dateTimeProviderRef = "offsetDateTimeProvider")
@@ -132,34 +149,39 @@ public class MongoConfig {
 ## Issue #4: Reward Calculation System
 
 ### Problem
+
 - Static rewards were not fair for all item types
 - No consideration for item value or urgency
 - Owners wanted control over reward amounts
 
 ### Approaches Tried
+
 1. **Fixed rewards per category** - Too rigid
 2. **Fully dynamic calculation** - Too complex, owners had no control
 3. **Owner-set with dynamic suggestions** - Final solution
 
 ### Best Fix Applied
+
 Created `RewardCalculationService.java` with hybrid approach:
 
 **Implementation:**
+
 ```java
 public Double calculateReward(LostReport lostReport) {
     // Use owner's set reward amount
     Double ownerReward = lostReport.getRewardAmount();
-    
+
     // Default minimum if not set
     Double finalReward = (ownerReward != null && ownerReward > 0)
             ? ownerReward
             : 50.0;
-    
+
     return finalReward;
 }
 ```
 
 **Category Base Suggestions:**
+
 - Electronics: 100 coins
 - Jewelry: 150 coins
 - Pet: 200 coins
@@ -167,6 +189,7 @@ public Double calculateReward(LostReport lostReport) {
 - Other: 50 coins minimum
 
 **Features:**
+
 - Owners set their own reward
 - System provides suggestions based on category
 - Minimum default of 50 coins
@@ -179,19 +202,23 @@ public Double calculateReward(LostReport lostReport) {
 ## Issue #5: Claim Workflow and Status Management
 
 ### Problem
+
 - Complex state machine for claim approval process
 - Need to track multiple statuses across different entities
 - Reward payment needed to be atomic with claim completion
 
 ### Approaches Tried
+
 1. **Simple boolean flags** - Couldn't track intermediate states
 2. **String status fields** - Type-unsafe and error-prone
 3. **Enum-based state machine** - Final solution
 
 ### Best Fix Applied
+
 Implemented proper claim workflow in `ClaimService.java`:
 
 **Claim Status Enum:**
+
 ```java
 enum ClaimStatus {
     PENDING,    // Submitted, awaiting owner review
@@ -202,11 +229,13 @@ enum ClaimStatus {
 ```
 
 **Workflow Steps:**
+
 1. **Create Claim** → Status: PENDING
 2. **Owner Reviews** → Approve (APPROVED) or Reject (REJECTED)
 3. **Complete** → Transfer coins, Status: COMPLETED
 
 **Transaction Management:**
+
 ```java
 @Transactional
 public Claim completeClaimAndReleaseReward(String claimId) {
@@ -226,23 +255,27 @@ public Claim completeClaimAndReleaseReward(String claimId) {
 ## Issue #6: Currency System and Transaction Tracking
 
 ### Problem
+
 - Needed virtual currency for rewards
 - Required transaction history for auditing
 - Prevent negative balances
 - Track lifetime earnings/spending
 
 ### Approaches Tried
+
 1. **Simple balance field** - No transaction history
 2. **Transaction log without validation** - Could go negative
 3. **Full currency service with validation** - Final solution
 
 ### Best Fix Applied
+
 Created comprehensive `CurrencyService.java`:
 
 **Core Operations:**
+
 ```java
 // Credit coins (add)
-public Transaction creditCoins(User user, Double amount, 
+public Transaction creditCoins(User user, Double amount,
     TransactionType type, String description, String metadata)
 
 // Debit coins (subtract)
@@ -250,17 +283,19 @@ public Transaction debitCoins(User user, Double amount,
     TransactionType type, String description, String metadata)
 
 // Transfer between users
-public Transaction transferCoins(User fromUser, User toUser, 
+public Transaction transferCoins(User fromUser, User toUser,
     Double amount, TransactionType type, String description)
 ```
 
 **Validations:**
+
 - Amount must be positive
 - Sender must have sufficient balance
 - Cannot transfer to self
 - Atomic balance updates
 
 **Transaction Types:**
+
 - `REWARD_PAYMENT` - Item return rewards
 - `TIP` - User-to-user tips
 - `QUEST_REWARD` - Quest completion
@@ -269,6 +304,7 @@ public Transaction transferCoins(User fromUser, User toUser,
 - `PENALTY` - Penalties
 
 **User Fields:**
+
 ```java
 Double coins;              // Current balance
 Double lifetimeEarnings;   // Total earned
@@ -282,19 +318,23 @@ Double lifetimeSpent;      // Total spent
 ## Issue #7: CORS Configuration for Frontend Integration
 
 ### Problem
+
 - Frontend requests blocked by CORS policy
 - Multiple frontend ports needed (dev, test, production)
 - Preflight OPTIONS requests failing
 
 ### Approaches Tried
+
 1. **Allow all origins** - Security risk
 2. **Hardcoded single origin** - Inflexible
 3. **Configurable multiple origins** - Final solution
 
 ### Best Fix Applied
+
 Configured CORS in `SecurityConfig.java`:
 
 **Configuration:**
+
 ```java
 @Bean
 public CorsConfigurationSource corsConfigurationSource() {
@@ -312,12 +352,14 @@ public CorsConfigurationSource corsConfigurationSource() {
 ```
 
 **Application.yml:**
+
 ```yaml
 cors:
   allowed-origins: http://localhost:3000,http://localhost:3001,http://localhost:3002
 ```
 
 **Security Filter:**
+
 ```java
 .authorizeHttpRequests(auth -> auth
     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -332,23 +374,28 @@ cors:
 ## Issue #8: Quest System and Progress Tracking
 
 ### Problem
+
 - Need gamification to encourage user engagement
 - Track user progress across multiple quests
 - Award rewards automatically on completion
 
 ### Approaches Tried
+
 1. **Manual progress tracking** - Prone to errors
 2. **Event-driven updates** - Complex
 3. **Service-based progress tracking** - Final solution
 
 ### Best Fix Applied
+
 Implemented quest system with `QuestService.java`:
 
 **Models:**
+
 - `Quest` - Quest definition (requirements, rewards)
 - `UserQuest` - User progress tracking
 
 **Quest Types:**
+
 ```java
 enum QuestType {
     REPORT_ITEM,    // Report X items
@@ -360,12 +407,14 @@ enum QuestType {
 ```
 
 **Progress Flow:**
+
 1. User starts quest → Create `UserQuest` record
 2. User performs actions → Update progress
 3. Progress meets requirement → Auto-complete
 4. Completion triggers → Award coins + badge
 
 **Reward System:**
+
 ```java
 public QuestResponse completeQuest(String questId) {
     // Validate quest completion
@@ -383,19 +432,23 @@ public QuestResponse completeQuest(String questId) {
 ## Issue #9: Leaderboard Performance
 
 ### Problem
+
 - Ranking calculation needed for all users
 - Real-time rank updates required
 - Pagination for large user bases
 
 ### Approaches Tried
+
 1. **Calculate rank on every request** - Too slow
 2. **Cache all rankings** - Stale data issues
 3. **Sort + paginate with MongoDB** - Final solution
 
 ### Best Fix Applied
+
 Optimized leaderboard in `LeaderboardService.java`:
 
 **Sorting Strategy:**
+
 ```java
 Query query = new Query()
     .with(Sort.by(Sort.Direction.DESC, "score")
@@ -403,6 +456,7 @@ Query query = new Query()
 ```
 
 **Rank Calculation:**
+
 ```java
 // For current user rank
 long usersAbove = userRepository.countUsersWithHigherScore(
@@ -413,6 +467,7 @@ int rank = (int) usersAbove + 1;
 ```
 
 **Pagination:**
+
 ```java
 Pageable pageable = PageRequest.of(page - 1, pageSize);
 Page<User> userPage = userRepository.findAll(query, pageable);
@@ -425,19 +480,23 @@ Page<User> userPage = userRepository.findAll(query, pageable);
 ## Issue #10: API Response Standardization
 
 ### Problem
+
 - Inconsistent response formats across endpoints
 - Difficult to handle errors on frontend
 - No pagination metadata
 
 ### Approaches Tried
+
 1. **Direct model returns** - Inconsistent
 2. **Custom response per endpoint** - Duplicate code
 3. **Generic ApiResponse wrapper** - Final solution
 
 ### Best Fix Applied
+
 Created `ApiResponse` DTO:
 
 **Response Structure:**
+
 ```java
 @Data
 @Builder
@@ -446,7 +505,7 @@ public class ApiResponse<T> {
     private T data;
     private String error;
     private MetaData meta;
-    
+
     @Data
     @Builder
     public static class MetaData {
@@ -458,6 +517,7 @@ public class ApiResponse<T> {
 ```
 
 **Usage:**
+
 ```java
 // Success response
 return ResponseEntity.ok(ApiResponse.success(data));
@@ -471,6 +531,7 @@ return ResponseEntity.badRequest()
 ```
 
 **Example Response:**
+
 ```json
 {
   "success": true,
@@ -491,19 +552,23 @@ return ResponseEntity.badRequest()
 ## Issue #11: Documentation and API Discoverability
 
 ### Problem
+
 - No API documentation for frontend developers
 - Manual testing difficult
 - Unclear endpoint contracts
 
 ### Approaches Tried
+
 1. **Manual README** - Gets outdated quickly
 2. **Postman collection** - Separate from code
 3. **OpenAPI/Swagger** - Final solution
 
 ### Best Fix Applied
+
 Integrated Springdoc OpenAPI:
 
 **Dependencies:**
+
 ```xml
 <dependency>
     <groupId>org.springdoc</groupId>
@@ -513,6 +578,7 @@ Integrated Springdoc OpenAPI:
 ```
 
 **Configuration:**
+
 ```yaml
 springdoc:
   api-docs:
@@ -522,10 +588,12 @@ springdoc:
 ```
 
 **Access Points:**
+
 - Swagger UI: http://localhost:8080/swagger-ui.html
 - OpenAPI JSON: http://localhost:8080/api-docs
 
 **Features:**
+
 - Auto-generated from controllers
 - Interactive API testing
 - Request/response examples
@@ -538,14 +606,17 @@ springdoc:
 ## Issue #12: Script Execution Permissions
 
 ### Problem
+
 - Shell scripts not executable by default
 - Users getting "permission denied" errors
 - Inconsistent across different systems
 
 ### Solution Applied
+
 Made all shell scripts executable:
 
 **Commands:**
+
 ```bash
 chmod +x restart-backend.sh
 chmod +x backend/setup.sh
@@ -556,6 +627,7 @@ chmod +x test-api.sh
 ```
 
 **Git Configuration:**
+
 ```bash
 git update-index --chmod=+x restart-backend.sh
 ```
@@ -567,18 +639,21 @@ git update-index --chmod=+x restart-backend.sh
 ## Summary of Key Learnings
 
 ### Architecture Decisions
+
 ✅ Layered architecture (Controller → Service → Repository)
 ✅ DTO pattern for API contracts
 ✅ Transaction management for data consistency
 ✅ Dual authentication for flexibility
 
 ### Performance Optimizations
+
 ✅ MongoDB indexing on frequently queried fields
 ✅ Pagination for all list endpoints
 ✅ Connection pooling
 ✅ Efficient sorting for leaderboard
 
 ### Security Measures
+
 ✅ BCrypt password hashing
 ✅ JWT token signing
 ✅ CORS configuration
@@ -586,6 +661,7 @@ git update-index --chmod=+x restart-backend.sh
 ✅ Authentication filters
 
 ### Developer Experience
+
 ✅ Comprehensive documentation
 ✅ OpenAPI/Swagger integration
 ✅ Automated restart scripts
@@ -593,6 +669,7 @@ git update-index --chmod=+x restart-backend.sh
 ✅ Type-safe enums
 
 ### Best Practices Followed
+
 ✅ Single Responsibility Principle
 ✅ Dependency Injection
 ✅ Exception handling
