@@ -5,6 +5,7 @@ import com.lostcity.dto.request.CreateCommentRequest;
 import com.lostcity.dto.response.ApiResponse;
 import com.lostcity.dto.response.CommentResponse;
 import com.lostcity.dto.response.LostReportResponse;
+import com.lostcity.kafka.producer.KafkaProducerService;
 import com.lostcity.model.Comment;
 import com.lostcity.service.CommentService;
 import com.lostcity.service.LostReportService;
@@ -23,11 +24,26 @@ public class LostReportController {
 
     private final LostReportService lostReportService;
     private final CommentService commentService;
+    private final KafkaProducerService kafkaProducerService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<LostReportResponse>> createLostReport(
             @Valid @RequestBody CreateLostReportRequest request) {
         LostReportResponse response = lostReportService.createLostReport(request);
+
+        // Publish domain event so the matching engine / notification service can react
+        kafkaProducerService.publishLostItemReported(
+                response.getId(),
+                response.getReportedBy() != null ? response.getReportedBy().getId() : "unknown",
+                response.getTitle(),
+                response.getCategory(),
+                response.getRewardAmount(),
+                response.getLocationName(),
+                response.getLatitude(),
+                response.getLongitude(),
+                response.getTags(),
+                response.getVisibility());
+
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 

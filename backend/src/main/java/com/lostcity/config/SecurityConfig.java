@@ -48,6 +48,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/webhooks/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow CORS preflight
+                        // Demo / testing endpoints (no auth required)
+                        .requestMatchers("/api/demo/**").permitAll()
                         // Public GET endpoints
                         .requestMatchers(HttpMethod.GET, "/api/lost-reports/**", "/api/found-reports/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/quests", "/api/quests/**").permitAll()

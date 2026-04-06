@@ -1,6 +1,7 @@
 package com.lostcity.controller;
 
 import com.lostcity.dto.response.ApiResponse;
+import com.lostcity.kafka.producer.KafkaProducerService;
 import com.lostcity.model.Claim;
 import com.lostcity.service.ClaimService;
 import com.lostcity.service.RewardCalculationService;
@@ -20,6 +21,7 @@ public class ClaimController {
     private final ClaimService claimService;
     private final RewardCalculationService rewardCalculationService;
     private final LostReportRepository lostReportRepository;
+    private final KafkaProducerService kafkaProducerService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<Claim>> createClaim(@RequestBody Map<String, String> request) {
@@ -32,6 +34,17 @@ public class ClaimController {
         }
 
         Claim claim = claimService.createClaim(lostReportId, foundReportId, message);
+
+        // Publish claim-submitted event — notifies the owner and downstream services
+        kafkaProducerService.publishClaimSubmitted(
+                claim.getId(),
+                claim.getClaimer() != null ? claim.getClaimer().getId() : "unknown",
+                lostReportId,
+                foundReportId,
+                claim.getOwner() != null ? claim.getOwner().getId() : "unknown",
+                claim.getRewardAmount(),
+                message);
+
         return ResponseEntity.ok(ApiResponse.success(claim));
     }
 
@@ -65,6 +78,16 @@ public class ClaimController {
             @RequestBody Map<String, String> request) {
         String response = request.get("response");
         Claim claim = claimService.approveClaim(id, response);
+
+        // Publish claim-approved event — notifies the finder
+        kafkaProducerService.publishClaimApproved(
+                claim.getId(),
+                claim.getOwner() != null ? claim.getOwner().getId() : "unknown",
+                claim.getLostReport() != null ? claim.getLostReport().getId() : "unknown",
+                claim.getClaimer() != null ? claim.getClaimer().getId() : "unknown",
+                claim.getRewardAmount(),
+                response);
+
         return ResponseEntity.ok(ApiResponse.success(claim));
     }
 
