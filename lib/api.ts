@@ -92,6 +92,20 @@ export interface FoundReportResponse extends Report {
   foundCondition?: string;
 }
 
+export interface ApiResponse<T> {
+  data: T;
+  meta?: {
+    page: number;
+    pageSize: number;
+    total: number;
+  };
+  errors?: Array<{
+    code?: string;
+    message: string;
+    field?: string;
+  }>;
+}
+
 export interface PageResponse<T> {
   content: T[];
   totalElements: number;
@@ -204,13 +218,13 @@ export const authAPI = {
       body: JSON.stringify(data),
     }),
 
-  getCurrentUser: () => apiFetch<User>('/auth/me'),
+  getCurrentUser: () => apiFetch<ApiResponse<User>>('/auth/me'),
 };
 
 // Lost Reports API
 export const lostReportsAPI = {
   create: (data: LostReportRequest, token?: string | null) =>
-    apiFetch<Report>('/lost-reports', {
+    apiFetch<ApiResponse<Report>>('/lost-reports', {
       method: 'POST',
       body: JSON.stringify(data),
     }, token),
@@ -222,13 +236,13 @@ export const lostReportsAPI = {
       ...(search && { q: search }),
       ...(category && { category }),
     });
-    return apiFetch<PageResponse<LostReportResponse>>(`/lost-reports?${params}`);
+    return apiFetch<ApiResponse<LostReportResponse[]>>(`/lost-reports?${params}`);
   },
 
-  getById: (id: string) => apiFetch<Report>(`/lost-reports/${id}`),
+  getById: (id: string) => apiFetch<ApiResponse<Report>>(`/lost-reports/${id}`),
 
   updateStatus: (id: string, status: string) =>
-    apiFetch<Report>(`/lost-reports/${id}/status`, {
+    apiFetch<ApiResponse<Report>>(`/lost-reports/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),
     }),
@@ -242,7 +256,7 @@ export const lostReportsAPI = {
 // Found Reports API
 export const foundReportsAPI = {
   create: (data: FoundReportRequest, token?: string | null) =>
-    apiFetch<Report>('/found-reports', {
+    apiFetch<ApiResponse<Report>>('/found-reports', {
       method: 'POST',
       body: JSON.stringify(data),
     }, token),
@@ -254,13 +268,13 @@ export const foundReportsAPI = {
       ...(search && { q: search }),
       ...(category && { category }),
     });
-    return apiFetch<PageResponse<FoundReportResponse>>(`/found-reports?${params}`);
+    return apiFetch<ApiResponse<FoundReportResponse[]>>(`/found-reports?${params}`);
   },
 
-  getById: (id: string) => apiFetch<Report>(`/found-reports/${id}`),
+  getById: (id: string) => apiFetch<ApiResponse<Report>>(`/found-reports/${id}`),
 
   updateStatus: (id: string, status: string) =>
-    apiFetch<Report>(`/found-reports/${id}/status`, {
+    apiFetch<ApiResponse<Report>>(`/found-reports/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),
     }),

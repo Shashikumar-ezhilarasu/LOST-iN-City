@@ -21,6 +21,7 @@ interface FoundItem {
   images: string[];
   distinguishingFeatures: string[];
   status: string;
+  responses?: number;
   reportedBy: {
     id: string;
     displayName: string;
