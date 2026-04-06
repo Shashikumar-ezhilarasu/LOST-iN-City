@@ -161,72 +161,50 @@ npm run dev
 - Full ranking list with player stats
 - Current user position highlighted
 
-## 🛠️ Tech Stack
+## 🏗️ Architecture & Tech Stack
 
-- **Framework**: Next.js 14
-- **Styling**: Tailwind CSS
-- **UI Components**: Shadcn UI (Card, Button, Progress, Avatar)
-- **Icons**: Lucide React
-- **Fonts**: Google Fonts (Cinzel, MedievalSharp)
-- **Images**: Unsplash (placeholder images)
+This platform is built with a modern, scalable, and event-driven architecture. Explore our detailed technology documentation below:
+
+| Component | Technology | Documentation |
+|-----------|------------|---------------|
+| **Frontend** | Next.js 14, Tailwind, Shadcn | [Frontend Docs](./docs/frontend.md) |
+| **Backend** | Spring Boot, Java 21, Maven | [Backend Docs](./docs/backend.md) |
+| **Streaming** | Apache Kafka, Zookeeper | [Kafka Docs](./docs/kafka.md) |
+| **Database** | MongoDB (NoSQL) | [Database Docs](./docs/database.md) |
+| **Auth** | Clerk (JWT + SDKs) | [Auth Docs](./docs/frontend.md#clerk) |
 
 ## 📦 Project Structure
 
 ```
 lostCity/
-├── app/
-│   ├── globals.css          # Global styles and custom CSS
-│   ├── layout.tsx           # Root layout with Header and BottomNav
-│   ├── page.tsx             # Landing page
-│   ├── quests/
-│   │   └── page.tsx         # Home dashboard
-│   ├── inventory/
-│   │   └── page.tsx         # Inventory page
-│   └── leaderboard/
-│       └── page.tsx         # Leaderboard page
-├── components/
-│   ├── Header.tsx           # Top navigation header
-│   ├── BottomNav.tsx        # Bottom navigation bar
-│   └── ui/                  # Shadcn UI components
-│       ├── card.tsx
-│       ├── button.tsx
-│       ├── progress.tsx
-│       └── avatar.tsx
-├── lib/
-│   └── utils.ts             # Utility functions
-├── tailwind.config.ts       # Tailwind configuration
-└── package.json             # Dependencies
+├── app/                    # Next.js App Router (Pages, Layouts)
+├── backend/                # Spring Boot REST API
+│   ├── src/main/java/      # Java Source Code
+│   ├── src/main/resources/ # Config and YML
+│   └── start.sh            # Backend Runner
+├── components/             # Reusable UI Components
+├── docs/                   # Detailed Technology Documentation
+├── lib/                    # Shared Utilities
+├── docker-compose.yml      # Kafka & Zookeeper Stack
+├── run-all.sh              # Full Stack Launcher
+└── README.md               # You are here
 ```
 
-## 🎯 Custom Tailwind Classes
+## 🔄 Roadmap & Features
 
-- `.fantasy-title` - Medieval-style title with gold color
-- `.gold-border` - Thick gold border
-- `.fantasy-card` - Card with brown background and gold border
-- `.fantasy-button` - 3D gold button with hover effects
-- `.nav-item-active` - Active navigation item styling
-- `.nav-item` - Inactive navigation item styling
+### Core Features (Implemented ✅)
+- **Gamification**: XP tracking, leveling, and leaderboard.
+- **Reporting**: Full CRUD for lost and found reports.
+- **Event Streaming**: Real-time Kafka events for all state changes.
+- **Security**: Secure JWT authentication via Clerk.
+- **Fantasy UI**: Premium medieval design system.
 
-## 🔄 Upcoming Integrations
+### Upcoming Features (In Progress 🚧)
+- **Real-time Chat**: WebSocket-based messaging between finders and owners.
+- **Stripe Payments**: Secure reward escrow and payouts.
+- **Image Processing**: AI-based item matching and thumbnail generation.
+- **Mobile App**: Dedicated Android/iOS version via React Native.
 
-### Backend Stack
-
-- **Spring Boot** - Java backend API
-- **MongoDB** - NoSQL database for flexible data storage
-- **Clerk** - User authentication and management
-- **Stripe** - Secure payment processing for rewards
-
-### Features to be Implemented
-
-- Real-time chat system (WebSocket)
-- Email/SMS notifications
-- Map integration for item locations
-- Image upload to cloud storage (AWS S3/Cloudinary)
-- Machine learning for item matching suggestions
-- Admin dashboard for platform management
-- Mobile app (React Native)
-
-See [BACKEND_REQUIREMENTS.md](./BACKEND_REQUIREMENTS.md) for complete backend specifications.
 
 ## 📝 License
 
