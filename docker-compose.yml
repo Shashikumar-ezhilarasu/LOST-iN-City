@@ -1,0 +1,86 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LOST-iN-City — Local Kafka Development Stack
+#
+# Start:  docker-compose up -d
+# Stop:   docker-compose down
+# UI:     http://localhost:8090
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── ZooKeeper ──────────────────────────────────────────────────────────────
+  # Kafka 7.x still ships with ZooKeeper; KRaft mode is opt-in from 7.5+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: lostcity-zookeeper
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_4LW_COMMANDS_WHITELIST: 'ruok,stat,srvr'
+    ports:
+      - "2181:2181"
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-logs:/var/lib/zookeeper/log
+      - zookeeper-logs:/var/lib/zookeeper/log
+
+  # ── Kafka Broker ───────────────────────────────────────────────────────────
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: lostcity-kafka
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+    ports:
+      # Expose 9092 so the Spring Boot app (running outside Docker) can connect
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+      # PLAINTEXT listener is used by the Spring Boot app on localhost
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      # Single-broker dev setup: replication factor = 1 everywhere
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+
+      # Auto-create topics on first use (KafkaConfig.java also creates them explicitly)
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+      # Retain messages for 7 days (sufficient for dev replay)
+      KAFKA_LOG_RETENTION_HOURS: 168
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824
+
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+      - kafka-data:/var/lib/kafka/data
+
+  # ── Kafka UI  ──────────────────────────────────────────────────────────────
+  # Browse topics, inspect messages, replay events — great for dev visibility
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: lostcity-kafka-ui
+    restart: unless-stopped
+    depends_on:
+      - kafka
+    ports:
+      - "8090:8080"     # Access at http://localhost:8090
+    environment:
+      KAFKA_CLUSTERS_0_NAME: lost-city-local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      # Show all 6 domain topics in the sidebar immediately
+      DYNAMIC_CONFIG_ENABLED: "true"
+
+# ─── Named volumes so data survives container restarts ───────────────────────
+volumes:
+  zookeeper-data:
+  zookeeper-logs:
+  kafka-data:
