@@ -4,21 +4,38 @@ spring:
 
   data:
     mongodb:
-      uri: mongodb+srv://shashikumarezhil_db_user:CZHLkjeFvHz55vC5@lostcity.1g3rszx.mongodb.net/lostcity?retryWrites=true&w=majority&appName=LostCity
-      database: lostcity
+      uri: ${MONGODB_URI}
+      database: ${MONGODB_DATABASE:lostcity}
+
+  # ── Apache Kafka ──────────────────────────────────────────────────────────
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+    consumer:
+      group-id: ${KAFKA_GROUP_ID:lost-city-group}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+    properties:
+      spring.json.trusted.packages: "*"
 
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 jwt:
-  secret: ${JWT_SECRET:your-256-bit-secret-key-change-this-in-production-must-be-very-long}
-  expiration: 86400000 # 24 hours in milliseconds
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
 
 clerk:
-  publishable-key: ${CLERK_PUBLISHABLE_KEY:pk_test_cHJlY2lzZS1iZWUtMzcuY2xlcmsuYWNjb3VudHMuZGV2JA}
+  publishable-key: ${CLERK_PUBLISHABLE_KEY}
 
 cors:
-  allowed-origins: http://localhost:3000,http://localhost:3001,http://localhost:3002
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
 
 springdoc:
   api-docs:
