@@ -19,4 +19,6 @@ public interface FoundReportRepository extends MongoRepository<FoundReport, Stri
 
     @Query("{ $and: [ { 'latitude': { $ne: null } }, { 'longitude': { $ne: null } } ] }")
     List<FoundReport> findAllWithLocation();
+
+    List<FoundReport> findByCategory(String category);
 }
