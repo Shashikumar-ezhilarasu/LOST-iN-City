@@ -1,6 +1,6 @@
 const { MongoClient } = require('mongodb');
 
-const uri = "mongodb+srv://shashiezhil:CZHLkjeFvHz55vC5@lostcity.3fwxb.mongodb.net/?retryWrites=true&w=majority&appName=lostCity";
+const uri = "mongodb+srv://shashikumarezhil_db_user:CZHLkjeFvHz55vC5@lostcity.1g3rszx.mongodb.net/lostcity?retryWrites=true&w=majority&appName=LostCity";
 const dbName = "lostcity";
 
 // Helper to create ISO date strings (compatible with OffsetDateTime)
@@ -59,6 +59,16 @@ async function seedDatabase() {
         reputation: 78,
         createdAt: createISODate(20),
         lastSeenAt: createISODate(2)
+      },
+      {
+        clerkUserId: "user_36xxY5dPJoQkBZrhBGTZ6UtBCrM",
+        username: "Shashi-Hero",
+        email: "shashi@example.com",
+        profileImageUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=shashi",
+        coins: 5000,
+        reputation: 100,
+        createdAt: createISODate(30),
+        lastSeenAt: createISODate(0)
       }
     ]);
 
@@ -143,6 +153,44 @@ async function seedDatabase() {
         visibility: "PUBLIC",
         createdAt: createISODate(3),
         updatedAt: createISODate(3)
+      },
+      {
+        title: "Lost: Ancient Bronze Ring",
+        description: "Small bronze ring with a faded engraving of a dragon. Very important family heirloom.",
+        category: "Accessories",
+        images: ["https://images.unsplash.com/photo-1598560912015-62d6d03a1102?w=400"],
+        tags: ["ring", "bronze", "heirloom"],
+        color: "Bronze",
+        brand: "Handmade",
+        rewardAmount: 2500,
+        latitude: 12.9538,
+        longitude: 77.5813,
+        locationName: "Lalbagh Botanical Garden, Bangalore",
+        status: "OPEN",
+        lostAt: createISODate(1),
+        reportedBy: { "$ref": "users", "$id": userIds[0] },
+        visibility: "PUBLIC",
+        createdAt: createISODate(1),
+        updatedAt: createISODate(1)
+      },
+      {
+        title: "Lost: Ancient Golden Chalice",
+        description: "A golden chalice encrusted with rubies. It has a small chip on the rim. Very valuable and has spiritual significance.",
+        category: "Accessories",
+        images: ["https://images.unsplash.com/photo-1599305090598-fe179d501227?w=400"],
+        tags: ["chalice", "gold", "ruby"],
+        color: "Gold",
+        brand: "Royal Mint",
+        rewardAmount: 5000,
+        latitude: 12.9716,
+        longitude: 77.5946,
+        locationName: "Vidhana Soudha, Bangalore",
+        status: "OPEN",
+        lostAt: createISODate(2),
+        reportedBy: { "$ref": "users", "$id": userIds[3] },
+        visibility: "PUBLIC",
+        createdAt: createISODate(2),
+        updatedAt: createISODate(2)
       }
     ]);
 
@@ -210,10 +258,79 @@ async function seedDatabase() {
         visibility: "PUBLIC",
         createdAt: createISODate(6),
         updatedAt: createISODate(6)
+      },
+      {
+        title: "Found: Brown Leather Wallet",
+        description: "Found a brown leather wallet near information desk. Fossil brand, showing some wear. No cash inside but has cards.",
+        category: "Personal Items",
+        images: ["https://images.unsplash.com/photo-1627123424574-724758594e93?w=400"],
+        tags: ["wallet", "leather", "brown"],
+        color: "Brown",
+        brand: "Fossil",
+        latitude: 12.9718,
+        longitude: 77.5948,
+        locationName: "Central Park Info Desk, Bangalore",
+        status: "OPEN",
+        foundAt: createISODate(0),
+        foundBy: { "$ref": "users", "$id": userIds[1] },
+        foundCondition: "Good",
+        holdingInstructions: "Handed over to park security",
+        visibility: "PUBLIC",
+        createdAt: createISODate(0),
+        updatedAt: createISODate(0)
       }
     ]);
 
-    console.log(`✅ Created ${foundReports.insertedCount} found reports`);
+    const foundReportsCount = foundReports.insertedCount;
+    console.log(`✅ Created ${foundReportsCount} found reports`);
+
+    // Add a matching found report for the ring
+    console.log('\n💍 Adding a perfect match for the Ancient Bronze Ring...');
+    await db.collection('found_reports').insertOne({
+      title: "Found Bronze Ring",
+      description: "Found an old-looking bronze ring with a dragon carving near the lake. Looks like it's been there for a day.",
+      category: "Accessories",
+      images: ["https://images.unsplash.com/photo-1598560912015-62d6d03a1102?w=400"],
+      tags: ["ring", "bronze", "dragon"],
+      color: "Bronze",
+      brand: null,
+      latitude: 12.9540,
+      longitude: 77.5815,
+      locationName: "Lake Side, Lalbagh, Bangalore",
+      status: "OPEN",
+      foundAt: createISODate(0),
+      foundBy: { "$ref": "users", "$id": userIds[2] },
+      foundCondition: "Slightly muddy",
+      holdingInstructions: "I have it with me, contact to claim",
+      visibility: "PUBLIC",
+      createdAt: createISODate(0),
+      updatedAt: createISODate(0)
+    });
+    console.log('✅ Perfect match ring added');
+
+    // Add a matching found report for the Chalice
+    console.log('\n🏆 Adding a perfect match for the Golden Chalice...');
+    await db.collection('found_reports').insertOne({
+      title: "Found Golden Cup with Gems",
+      description: "Found a heavy golden cup with red stones (possibly rubies). It has a slight chip on the edge. Found near the parliament building steps.",
+      category: "Accessories",
+      images: ["https://images.unsplash.com/photo-1599305090598-fe179d501227?w=400"],
+      tags: ["gold", "cup", "gemstone"],
+      color: "Gold",
+      brand: null,
+      latitude: 12.9718,
+      longitude: 77.5948,
+      locationName: "Vidhana Soudha North Gate, Bangalore",
+      status: "OPEN",
+      foundAt: createISODate(0),
+      foundBy: { "$ref": "users", "$id": userIds[1] },
+      foundCondition: "Excellent, only a small chip",
+      holdingInstructions: "Secured in a safe box, please provide proof of ownership.",
+      visibility: "PUBLIC",
+      createdAt: createISODate(0),
+      updatedAt: createISODate(0)
+    });
+    console.log('✅ Perfect match chalice added');
 
     console.log('\n✨ Database seeding completed successfully!');
     console.log(`\n📊 Summary:`);
