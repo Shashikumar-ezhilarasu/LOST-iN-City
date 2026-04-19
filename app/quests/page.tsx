@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
+import MagicMatches from "@/components/MagicMatches";
 
 interface Quest {
   id: string;
@@ -102,11 +103,18 @@ export default function QuestsPage() {
       </div>
 
       {/* Action Buttons */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Link href="/report-lost">
           <Button className="fantasy-button w-full h-16 text-lg flex items-center justify-center space-x-3">
             <Plus className="w-6 h-6" />
             <span>REPORT LOST ITEM</span>
+          </Button>
+        </Link>
+
+        <Link href="/report-found">
+          <Button className="fantasy-button w-full h-16 text-lg flex items-center justify-center space-x-3 border-green-500/50 hover:bg-green-500/10">
+            <Plus className="w-6 h-6 text-green-500" />
+            <span>REPORT FOUND ITEM</span>
           </Button>
         </Link>
         
@@ -117,6 +125,9 @@ export default function QuestsPage() {
           </Button>
         </Link>
       </div>
+
+      {/* Magic Matches (AI Suggestions) */}
+      <MagicMatches />
 
       {/* Two Column Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
