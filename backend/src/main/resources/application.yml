@@ -42,3 +42,6 @@ springdoc:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
+
+gemini:
+  api-key: ${GEMINI_API_KEY}
